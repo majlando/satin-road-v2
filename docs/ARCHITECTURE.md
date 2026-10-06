@@ -1,0 +1,1 @@
+Web (React) → API (ASP.NET Core, C#) → DB (SQLite)

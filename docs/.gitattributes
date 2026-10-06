@@ -1,0 +1,14 @@
+# Normalise line endings so mixed Windows/macOS machines do not produce
+# whole-file diffs. Working copies stay native; the repository stores LF.
+* text=auto
+
+# Files that must keep LF even on Windows: they run inside Linux containers.
+*.sh        text eol=lf
+Dockerfile  text eol=lf
+*.conf      text eol=lf
+*.yml       text eol=lf
+
+*.png binary
+*.jpg binary
+*.webp binary
+*.ico binary
