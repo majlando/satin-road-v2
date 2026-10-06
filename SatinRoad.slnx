@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SatinRoad.Api/SatinRoad.Api.csproj" />
+    <Project Path="src/SatinRoad.Domain/SatinRoad.Domain.csproj" />
+    <Project Path="src/SatinRoad.Infrastructure/SatinRoad.Infrastructure.csproj" />
+  </Folder>
+</Solution>
