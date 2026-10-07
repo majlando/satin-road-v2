@@ -35,3 +35,47 @@ public class PricingRulesTests
         price.TotalCents.ShouldBe(799);
     }
 }
+
+/// <summary>The FBI raid chance.</summary>
+public class RaidPolicyTests
+{
+    [Fact]
+    public void A_roll_just_under_the_chance_is_a_raid()
+    {
+        new RaidPolicy(0.01).IsRaid(new FuncRoller(() => 0.0099)).ShouldBeTrue();
+    }
+
+    [Fact]
+    public void A_roll_equal_to_the_chance_is_not_a_raid()
+    {
+        new RaidPolicy(0.01).IsRaid(new FuncRoller(() => 0.01)).ShouldBeFalse();
+    }
+
+    [Theory]
+    [InlineData(-0.1)]
+    [InlineData(1.1)]
+    public void A_chance_outside_zero_to_one_is_refused(double chance)
+    {
+        Should.Throw<ArgumentOutOfRangeException>(() => new RaidPolicy(chance));
+    }
+
+    [Fact]
+    public void One_percent_is_about_one_percent()
+    {
+        // A fixed seed makes the "random" numbers the same on every run,
+        // so this checks the distribution without ever failing by bad luck.
+        var random = new Random(42);
+        var roller = new FuncRoller(random.NextDouble);
+        var policy = new RaidPolicy(0.01);
+
+        var raids = Enumerable.Range(0, 100_000).Count(_ => policy.IsRaid(roller));
+
+        raids.ShouldBeInRange(800, 1_200);
+    }
+}
+
+/// <summary>A pretend dice roll that returns whatever the function returns, to force the outcome.</summary>
+public class FuncRoller(Func<double> next) : IRaidRoller
+{
+    public double Next() => next();
+}
