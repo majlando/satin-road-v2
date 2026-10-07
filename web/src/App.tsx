@@ -1,6 +1,7 @@
 import { Link, Route, Routes } from "react-router";
 import { ActingAsPicker, ActingAsProvider } from "./ActingAs";
 import { Browse } from "./pages/Browse";
+import { ListingPage } from "./pages/ListingPage";
 
 /** The frame around every page: header, the current page, disclaimer. */
 export function App() {
@@ -21,6 +22,7 @@ export function App() {
                 <main>
                     <Routes>
                         <Route path="/" element={<Browse />} />
+                        <Route path="/listings/:id" element={<ListingPage />} />
                         <Route path="*" element={<NotFound />} />
                     </Routes>
                 </main>
