@@ -9,3 +9,10 @@ public record UserDto(int Id, string Username, string Role, bool IsSeized)
 }
 
 public record CreateUserRequest(string Username);
+
+public record CategoryDto(int Id, string Name)
+{
+    public static CategoryDto From(CategoryRecord c) => new(c.Id, c.Name);
+}
+
+public record CategoryRequest(string Name);
