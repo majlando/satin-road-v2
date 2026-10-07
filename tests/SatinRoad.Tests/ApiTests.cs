@@ -52,3 +52,157 @@ public class AccessTests
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
 }
+
+public class CategoryTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task A_normal_user_cannot_create_a_category()
+    {
+        await using var api = new ApiFactory();
+        var user = api.AddUser("newbie");
+
+        var response = await api.As(user).PostAsJsonAsync("/api/categories", new CategoryRequest("Soap"), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task An_admin_creates_a_category_with_a_trimmed_name()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("  Soap  "), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        (await response.Content.ReadFromJsonAsync<CategoryDto>(Ct))!.Name.ShouldBe("Soap");
+    }
+
+    [Fact]
+    public async Task An_empty_name_is_400()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("   "), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task A_duplicate_name_is_409()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+        api.AddCategory("Soap");
+
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("soap"), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task A_category_in_use_cannot_be_deleted()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+        var vendor = api.AddUser("grandmasoap");
+        var soap = api.AddCategory("Soap");
+        api.AddListing(vendor, soap);
+
+        var response = await api.As(admin).DeleteAsync($"/api/categories/{soap}", Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+}
+
+public class SellingTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task A_user_creates_a_listing()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var soap = api.AddCategory("Soap");
+
+        var response = await api.As(vendor).PostAsJsonAsync("/api/my/listings",
+            new ListingRequest(soap, "Lavender bar", "Smells nice", 999, 10), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var listing = (await response.Content.ReadFromJsonAsync<ListingDto>(Ct))!;
+        listing.VendorName.ShouldBe("grandmasoap");
+        listing.CategoryName.ShouldBe("Soap");
+    }
+
+    [Theory]
+    [InlineData("", 100, 1)]       // no title
+    [InlineData("Bar", 0, 1)]      // free
+    [InlineData("Bar", 100, -1)]   // negative stock
+    public async Task An_invalid_listing_is_400(string title, long priceCents, int stock)
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var soap = api.AddCategory("Soap");
+
+        var response = await api.As(vendor).PostAsJsonAsync("/api/my/listings",
+            new ListingRequest(soap, title, "", priceCents, stock), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task Someone_elses_listing_is_404_not_403()
+    {
+        await using var api = new ApiFactory();
+        var owner = api.AddUser("grandmasoap");
+        var other = api.AddUser("shadypete");
+        var listing = api.AddListing(owner, api.AddCategory("Soap"), stock: 5);
+
+        var response = await api.As(other).PatchAsJsonAsync($"/api/my/listings/{listing}/stock", new StockRequest(0), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
+        api.StockOf(listing).ShouldBe(5);
+    }
+
+    [Fact]
+    public async Task Deleting_is_a_soft_delete()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"));
+
+        var response = await api.As(vendor).DeleteAsync($"/api/my/listings/{listing}", Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        api.Db(db => db.Listings.Single(l => l.Id == listing).IsRemoved).ShouldBeTrue();
+    }
+}
+
+public class BrowseTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task Removed_sold_out_and_seized_listings_are_hidden()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var seizedVendor = api.AddUser("shadypete");
+        var category = api.AddCategory("Soap");
+
+        var visible = api.AddListing(vendor, category, stock: 3);
+        var removed = api.AddListing(vendor, category);
+        var soldOut = api.AddListing(vendor, category, stock: 0);
+        var fromSeized = api.AddListing(seizedVendor, category);
+        api.Db(db => db.Listings.Where(l => l.Id == removed).Set(l => l.IsRemoved, true).Update());
+        api.Db(db => db.Users.Where(u => u.Id == seizedVendor).Set(u => u.IsSeized, true).Update());
+
+        var listings = await api.CreateClient().GetFromJsonAsync<List<ListingDto>>("/api/listings", Ct);
+
+        listings!.Select(l => l.Id).ShouldBe([visible]);
+    }
+}
