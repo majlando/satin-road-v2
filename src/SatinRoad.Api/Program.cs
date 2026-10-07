@@ -27,6 +27,11 @@ builder.Services.AddLinqToDBContext<AppDb>((provider, options) =>
         .UseDefaultLogging(provider));
 
 builder.Services.AddScoped<CurrentUser>();
+builder.Services.AddSingleton<IRaidRoller, RandomRaidRoller>();
+builder.Services.AddSingleton(services =>
+    new RaidPolicy(services.GetRequiredService<IConfiguration>().GetValue("Fbi:RaidChance", 0.01)));
+builder.Services.AddScoped<PurchaseService>();
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
