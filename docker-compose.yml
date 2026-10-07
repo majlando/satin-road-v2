@@ -1,0 +1,25 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/SatinRoad.Api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      ConnectionStrings__Default: Data Source=/app/data/satinroad.db
+      # Raise to 1 to make every purchase an FBI raid, for the demo.
+      Fbi__RaidChance: ${FBI_RAID_CHANCE:-0.01}
+      Seed__Demo: "true"
+    volumes:
+      - data:/app/data
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    ports:
+      - "8080:80"
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  data:
