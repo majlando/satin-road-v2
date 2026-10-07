@@ -4,5 +4,6 @@ global using LinqToDB.Data;
 global using Microsoft.Extensions.DependencyInjection;
 global using Shouldly;
 global using SatinRoad.Api;
+global using SatinRoad.Api.Services;
 global using SatinRoad.Domain;
 global using SatinRoad.Infrastructure;

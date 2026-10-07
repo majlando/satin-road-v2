@@ -53,6 +53,71 @@ public class AccessTests
     }
 }
 
+public class CategoryTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task A_normal_user_cannot_create_a_category()
+    {
+        await using var api = new ApiFactory();
+        var user = api.AddUser("newbie");
+
+        var response = await api.As(user).PostAsJsonAsync("/api/categories", new CategoryRequest("Soap"), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+
+    [Fact]
+    public async Task An_admin_creates_a_category_with_a_trimmed_name()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("  Soap  "), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        (await response.Content.ReadFromJsonAsync<CategoryDto>(Ct))!.Name.ShouldBe("Soap");
+    }
+
+    [Fact]
+    public async Task An_empty_name_is_400()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("   "), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
+
+    [Fact]
+    public async Task A_duplicate_name_is_409()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+        api.AddCategory("Soap");
+
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("soap"), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+
+    [Fact]
+    public async Task A_category_in_use_cannot_be_deleted()
+    {
+        await using var api = new ApiFactory();
+        var admin = api.AddUser("boss", Roles.Admin);
+        var vendor = api.AddUser("grandmasoap");
+        var soap = api.AddCategory("Soap");
+        api.AddListing(vendor, soap);
+
+        var response = await api.As(admin).DeleteAsync($"/api/categories/{soap}", Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+}
+
 public class SellingTests
 {
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
