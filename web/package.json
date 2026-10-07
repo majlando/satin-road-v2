@@ -1,0 +1,27 @@
+{
+  "name": "satin-road-web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot src/index.ts",
+    "build": "bun build src/index.html --outdir dist --minify --production --public-path=/",
+    "start": "NODE_ENV=production bun src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "gen:api": "swagger-typescript-api generate -p http://localhost:5080/openapi/v1.json -o src/api -n Api.ts --module-name-first-tag --extract-request-params"
+  },
+  "dependencies": {
+    "react": "^19",
+    "react-dom": "^19",
+    "react-router": "^8.4.0"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "swagger-typescript-api": "^13.13.0"
+  },
+  "peerDependencies": {
+    "typescript": "^7"
+  }
+}
