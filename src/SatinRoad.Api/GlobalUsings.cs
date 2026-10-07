@@ -5,3 +5,4 @@ global using Microsoft.AspNetCore.Mvc;
 global using SatinRoad.Api;
 global using SatinRoad.Domain;
 global using SatinRoad.Infrastructure;
+global using SatinRoad.Api.Services;

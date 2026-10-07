@@ -32,6 +32,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDb>();
     Schema.Ensure(db);
+    Seeder.Run(db, app.Configuration.GetValue("Seed:Demo", false));
 }
 
 app.UseExceptionHandler();
