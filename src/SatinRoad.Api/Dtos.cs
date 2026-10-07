@@ -34,3 +34,5 @@ public record OrderDto(
     public static OrderDto From(OrderRecord o) =>
         new(o.Id, o.ListingId, o.Quantity, o.SubtotalCents, o.DiscountCents, o.TotalCents, o.Status);
 }
+
+public record FeaturedVendorDto(int VendorId, string VendorName, int Sales);
