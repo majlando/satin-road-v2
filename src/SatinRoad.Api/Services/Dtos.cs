@@ -16,3 +16,11 @@ public record CategoryDto(int Id, string Name)
 }
 
 public record CategoryRequest(string Name);
+
+public record ListingDto(
+    int Id, int VendorId, string VendorName, int CategoryId, string CategoryName,
+    string Title, string Description, long PriceCents, int Stock);
+
+public record ListingRequest(int CategoryId, string Title, string Description, long PriceCents, int Stock);
+
+public record StockRequest(int Stock);
