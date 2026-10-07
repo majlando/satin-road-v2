@@ -4,4 +4,7 @@
     <Project Path="src/SatinRoad.Domain/SatinRoad.Domain.csproj" />
     <Project Path="src/SatinRoad.Infrastructure/SatinRoad.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SatinRoad.Tests/SatinRoad.Tests.csproj" />
+  </Folder>
 </Solution>
