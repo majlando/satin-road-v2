@@ -26,6 +26,7 @@ builder.Services.AddLinqToDBContext<AppDb>((provider, options) =>
         .UseSQLite(BuildConnectionString(builder.Configuration), SQLiteProvider.Microsoft)
         .UseDefaultLogging(provider));
 
+builder.Services.AddScoped<CurrentUser>();
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
