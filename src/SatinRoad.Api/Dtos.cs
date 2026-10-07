@@ -24,3 +24,13 @@ public record ListingDto(
 public record ListingRequest(int CategoryId, string Title, string Description, long PriceCents, int Stock);
 
 public record StockRequest(int Stock);
+
+public record OrderRequest(int ListingId, int Quantity);
+
+public record OrderDto(
+    int Id, int ListingId, int Quantity,
+    long SubtotalCents, long DiscountCents, long TotalCents, string Status)
+{
+    public static OrderDto From(OrderRecord o) =>
+        new(o.Id, o.ListingId, o.Quantity, o.SubtotalCents, o.DiscountCents, o.TotalCents, o.Status);
+}
