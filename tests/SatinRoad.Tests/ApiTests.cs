@@ -206,3 +206,141 @@ public class BrowseTests
         listings!.Select(l => l.Id).ShouldBe([visible]);
     }
 }
+
+public class BuyingTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task A_purchase_takes_the_stock_and_completes()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("newbie");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"), priceCents: 999, stock: 5);
+
+        var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 2), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Created);
+        var order = (await response.Content.ReadFromJsonAsync<OrderDto>(Ct))!;
+        order.Status.ShouldBe(OrderStatus.Completed);
+        order.TotalCents.ShouldBe(1_998);
+        api.StockOf(listing).ShouldBe(3);
+    }
+
+    [Fact]
+    public async Task The_twelfth_order_with_a_vendor_is_20_percent_off()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("loyalbuyer");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"), priceCents: 999, stock: 5);
+        api.AddOrders(11, buyer, vendor, listing);
+
+        var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
+
+        var order = (await response.Content.ReadFromJsonAsync<OrderDto>(Ct))!;
+        order.DiscountCents.ShouldBe(200);
+        order.TotalCents.ShouldBe(799);
+    }
+
+    [Fact]
+    public async Task Seized_orders_do_not_count_towards_the_discount()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("loyalbuyer");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"), priceCents: 999, stock: 5);
+        api.AddOrders(10, buyer, vendor, listing);
+        api.AddOrders(5, buyer, vendor, listing, OrderStatus.Seized);
+
+        var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
+
+        (await response.Content.ReadFromJsonAsync<OrderDto>(Ct))!.DiscountCents.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task Buying_your_own_listing_is_400()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"), stock: 5);
+
+        var response = await api.As(vendor).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        api.StockOf(listing).ShouldBe(5);
+    }
+
+    [Fact]
+    public async Task A_quantity_below_one_is_400()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("newbie");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"), stock: 5);
+
+        var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 0), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        api.StockOf(listing).ShouldBe(5);
+    }
+
+    [Fact]
+    public async Task More_than_the_stock_is_409()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("newbie");
+        var listing = api.AddListing(vendor, api.AddCategory("Soap"), stock: 2);
+
+        var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 3), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        api.StockOf(listing).ShouldBe(2);
+    }
+}
+
+public class RaidTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task A_raid_seizes_the_order_and_shuts_the_vendor_down()
+    {
+        await using var api = new ApiFactory { NextRoll = 0 };   // 0 is always a raid
+        var vendor = api.AddUser("shadypete");
+        var buyer = api.AddUser("newbie");
+        var category = api.AddCategory("Curiosities");
+        var bought = api.AddListing(vendor, category, stock: 5);
+        var other = api.AddListing(vendor, category, stock: 5);
+
+        var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(bought, 1), Ct);
+
+        (await response.Content.ReadFromJsonAsync<OrderDto>(Ct))!.Status.ShouldBe(OrderStatus.Seized);
+        api.StockOf(bought).ShouldBe(5);                                             // no sale happened
+        api.Db(db => db.Users.Single(u => u.Id == vendor).IsSeized).ShouldBeTrue();
+        api.Db(db => db.Listings.Where(l => l.VendorId == vendor).All(l => l.IsRemoved)).ShouldBeTrue();
+        api.Db(db => db.Listings.Single(l => l.Id == other).IsRemoved).ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task After_a_raid_the_vendor_is_gone_for_good()
+    {
+        await using var api = new ApiFactory { NextRoll = 0 };
+        var vendor = api.AddUser("shadypete");
+        var buyer = api.AddUser("newbie");
+        var listing = api.AddListing(vendor, api.AddCategory("Curiosities"), stock: 5);
+        await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
+        api.NextRoll = 0.99;   // no more raids from here on
+
+        var browse = await api.CreateClient().GetFromJsonAsync<List<ListingDto>>("/api/listings", Ct);
+        var buyAgain = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
+        var vendorEdits = await api.As(vendor).PostAsJsonAsync("/api/my/listings",
+            new ListingRequest(1, "Comeback", "", 100, 1), Ct);
+
+        browse.ShouldBeEmpty();
+        buyAgain.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+        vendorEdits.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
+    }
+}
