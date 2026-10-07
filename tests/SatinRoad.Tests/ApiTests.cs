@@ -344,3 +344,44 @@ public class RaidTests
         vendorEdits.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
 }
+
+public class FeaturedTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task Only_vendors_with_more_than_100_completed_sales_are_featured()
+    {
+        await using var api = new ApiFactory();
+        var buyer = api.AddUser("bulkbuyer");
+        var category = api.AddCategory("Curiosities");
+        var star = api.AddUser("shadypete");
+        var almost = api.AddUser("grandmasoap");
+        api.AddOrders(101, buyer, star, api.AddListing(star, category));
+        api.AddOrders(100, buyer, almost, api.AddListing(almost, category));
+
+        var featured = await api.CreateClient().GetFromJsonAsync<List<FeaturedVendorDto>>("/api/vendors/featured", Ct);
+
+        featured!.Select(f => f.VendorName).ShouldBe(["shadypete"]);
+        featured![0].Sales.ShouldBe(101);
+    }
+
+    [Fact]
+    public async Task Seized_orders_do_not_count_and_seized_vendors_are_never_featured()
+    {
+        await using var api = new ApiFactory();
+        var buyer = api.AddUser("bulkbuyer");
+        var category = api.AddCategory("Curiosities");
+        var raided = api.AddUser("shadypete");
+        var padded = api.AddUser("grandmasoap");
+        api.AddOrders(150, buyer, raided, api.AddListing(raided, category));
+        api.Db(db => db.Users.Where(u => u.Id == raided).Set(u => u.IsSeized, true).Update());
+        var paddedListing = api.AddListing(padded, category);
+        api.AddOrders(100, buyer, padded, paddedListing);
+        api.AddOrders(50, buyer, padded, paddedListing, OrderStatus.Seized);
+
+        var featured = await api.CreateClient().GetFromJsonAsync<List<FeaturedVendorDto>>("/api/vendors/featured", Ct);
+
+        featured.ShouldBeEmpty();
+    }
+}
