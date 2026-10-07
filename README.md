@@ -40,3 +40,14 @@ tests, Docker Compose with nginx in front.
 ```bash
 dotnet test
 ```
+
+## Sustainability
+
+| Page | Performance | Accessibility | Best practices | SEO | 
+|---|------------|---------------|----------------|---|
+| `/` | 76 | 100 | 100            | 91| 
+| `/listings/7` | 97 | 100 | 100            | 91 | 
+
+The full reports: 
+- [home](docs/lighthouse/home.html)
+- [listing](docs/lighthouse/listing.html).
