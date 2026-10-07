@@ -79,3 +79,12 @@ public class FuncRoller(Func<double> next) : IRaidRoller
 {
     public double Next() => next();
 }
+/// <summary>The featured vendor threshold.</summary>
+public class FeaturedVendorRuleTests
+{
+    [Fact]
+    public void One_hundred_sales_is_not_featured() => FeaturedVendorRule.IsFeatured(100).ShouldBeFalse();
+
+    [Fact]
+    public void One_hundred_and_one_sales_is_featured() => FeaturedVendorRule.IsFeatured(101).ShouldBeTrue();
+}
