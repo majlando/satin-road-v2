@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useAuth } from "../Auth";
+import { Box } from "../Box";
 import { errorText } from "../api/client";
 
 /** Log in, or create an account. Afterwards, back to the page that sent you here. */
@@ -26,36 +27,48 @@ export function Login() {
     }
 
     return (
-        <section className="card">
-            <h2>{registering ? "Create an account" : "Log in"}</h2>
-            <form className="stack" onSubmit={submit}>
-                <label>
-                    Username
-                    <input
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        autoComplete="username"
-                        autoFocus
-                        required
-                    />
-                </label>
-                <label>
-                    Password
-                    <input
-                        type="password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        autoComplete={registering ? "new-password" : "current-password"}
-                        minLength={registering ? 8 : undefined}
-                        required
-                    />
-                </label>
-                <div>
-                    <button type="submit">{registering ? "Create account" : "Log in"}</button>
-                </div>
+        <Box title={registering ? "Create an account" : "Log in"}>
+            <form onSubmit={submit}>
+                <table className="form-table">
+                    <tbody>
+                    <tr>
+                        <th><label htmlFor="username">Username:</label></th>
+                        <td>
+                            <input
+                                id="username"
+                                value={username}
+                                onChange={(e) => setUsername(e.target.value)}
+                                autoComplete="username"
+                                autoFocus
+                                required
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th><label htmlFor="password">Password:</label></th>
+                        <td>
+                            <input
+                                id="password"
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                autoComplete={registering ? "new-password" : "current-password"}
+                                minLength={registering ? 8 : undefined}
+                                required
+                            />
+                        </td>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <td>
+                            <button type="submit">{registering ? "Create account" : "Log in"}</button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
             </form>
             {error && <p className="error">{error}</p>}
-            <p className="muted">
+            <p>
                 {registering ? "Already have an account? " : "New here? "}
                 <button
                     type="button"
@@ -68,6 +81,6 @@ export function Login() {
                     {registering ? "Log in" : "Create an account"}
                 </button>
             </p>
-        </section>
+        </Box>
     );
 }

@@ -1,5 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
+import { Link } from "react-router";
 import { LoginLink, useAuth } from "../Auth";
+import { Box } from "../Box";
 import { api, errorText, money, type CategoryDto, type ListingDto, type ListingRequest } from "../api/client";
 
 const EMPTY_FORM = { categoryId: 0, title: "", description: "", price: "", stock: "1" };
@@ -30,19 +32,17 @@ export function Sell() {
 
     if (!user) {
         return (
-            <section className="card">
-                <h2>Sell</h2>
-                <p className="muted"><LoginLink /> to manage your listings.</p>
-            </section>
+            <Box title="Sell">
+                <p><LoginLink /> to manage your listings.</p>
+            </Box>
         );
     }
 
     if (user.isSeized) {
         return (
-            <section className="card">
-                <h2>Sell</h2>
+            <Box title="Sell">
                 <p className="error">Your shop was shut down by the FBI. Permanently.</p>
-            </section>
+            </Box>
         );
     }
 
@@ -94,8 +94,7 @@ export function Sell() {
 
     return (
         <>
-            <section className="card">
-                <h2>Your listings</h2>
+            <Box title="Your listings">
                 {listings.length === 0 && <p className="muted">You are not selling anything yet.</p>}
                 {listings.length > 0 && (
                     <div className="table-wrap">
@@ -112,7 +111,9 @@ export function Sell() {
                             <tbody>
                             {listings.map((l) => (
                                 <tr key={l.id}>
-                                    <td>{l.title}</td>
+                                    <td>
+                                        <Link to={`/listings/${l.id}`}>{l.title}</Link>
+                                    </td>
                                     <td>{l.categoryName}</td>
                                     <td className="num">{money(l.priceCents)}</td>
                                     <td>
@@ -121,6 +122,7 @@ export function Sell() {
                                             min={0}
                                             defaultValue={l.stock}
                                             aria-label={`Stock for ${l.title}`}
+                                            size={4}
                                             onBlur={async (e) => {
                                                 const input = e.target;
                                                 const stock = Number(input.value);
@@ -140,73 +142,102 @@ export function Sell() {
                         </table>
                     </div>
                 )}
-            </section>
+                <p className="muted">Change a stock number and click elsewhere to save it.</p>
+            </Box>
 
-            <section className="card">
-                <h2>{editingId === null ? "Add a listing" : "Edit listing"}</h2>
-                <form className="stack" onSubmit={save}>
-                    <label>
-                        Category
-                        <select
-                            value={form.categoryId}
-                            onChange={(e) => setForm({ ...form, categoryId: Number(e.target.value) })}
-                        >
-                            <option value={0}>Choose…</option>
-                            {categories.map((c) => (
-                                <option key={c.id} value={c.id}>
-                                    {c.name}
-                                </option>
-                            ))}
-                        </select>
-                    </label>
-                    <label>
-                        Title
-                        <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} />
-                    </label>
-                    <label>
-                        Description
-                        <textarea
-                            rows={4}
-                            value={form.description}
-                            onChange={(e) => setForm({ ...form, description: e.target.value })}
-                        />
-                    </label>
-                    <label>
-                        Price (€)
-                        <input
-                            type="number"
-                            step="0.01"
-                            min="0.01"
-                            value={form.price}
-                            onChange={(e) => setForm({ ...form, price: e.target.value })}
-                        />
-                    </label>
-                    <label>
-                        Stock
-                        <input
-                            type="number"
-                            min="0"
-                            value={form.stock}
-                            onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                        />
-                    </label>
-                    <div>
-                        <button type="submit">{editingId === null ? "Add listing" : "Save changes"}</button>{" "}
-                        {editingId !== null && (
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setEditingId(null);
-                                    setForm(EMPTY_FORM);
-                                }}
-                            >
-                                Cancel
-                            </button>
-                        )}
-                    </div>
+            <Box title={editingId === null ? "Add a listing" : "Edit listing"}>
+                <form onSubmit={save}>
+                    <table className="form-table">
+                        <tbody>
+                        <tr>
+                            <th><label htmlFor="category">Category:</label></th>
+                            <td>
+                                <select
+                                    id="category"
+                                    value={form.categoryId}
+                                    onChange={(e) => setForm({ ...form, categoryId: Number(e.target.value) })}
+                                >
+                                    <option value={0}>Choose…</option>
+                                    {categories.map((c) => (
+                                        <option key={c.id} value={c.id}>
+                                            {c.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label htmlFor="title">Title:</label></th>
+                            <td>
+                                <input
+                                    id="title"
+                                    size={40}
+                                    value={form.title}
+                                    onChange={(e) => setForm({ ...form, title: e.target.value })}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label htmlFor="description">Description:</label></th>
+                            <td>
+                                <textarea
+                                    id="description"
+                                    rows={4}
+                                    cols={40}
+                                    value={form.description}
+                                    onChange={(e) => setForm({ ...form, description: e.target.value })}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label htmlFor="price">Price (€):</label></th>
+                            <td>
+                                <input
+                                    id="price"
+                                    type="number"
+                                    step="0.01"
+                                    min="0.01"
+                                    size={8}
+                                    value={form.price}
+                                    onChange={(e) => setForm({ ...form, price: e.target.value })}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th><label htmlFor="stock">Stock:</label></th>
+                            <td>
+                                <input
+                                    id="stock"
+                                    type="number"
+                                    min="0"
+                                    size={4}
+                                    value={form.stock}
+                                    onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                                />
+                            </td>
+                        </tr>
+                        <tr>
+                            <th></th>
+                            <td>
+                                <button type="submit">{editingId === null ? "Add listing" : "Save changes"}</button>{" "}
+                                {editingId !== null && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setEditingId(null);
+                                            setForm(EMPTY_FORM);
+                                        }}
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
                 </form>
                 {error && <p className="error">{error}</p>}
-            </section>
+            </Box>
         </>
     );
 }

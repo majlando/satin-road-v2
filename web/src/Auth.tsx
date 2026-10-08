@@ -71,28 +71,31 @@ export function LoginLink({ children = "Log in" }: { children?: ReactNode }) {
   );
 }
 
-/** The header's right-hand corner: who you are and Log out, or a Log in link. */
+/** The sidebar's account box: who you are and Log out, or a Log in link. */
 export function AccountMenu() {
   const { user, loading, logout } = useAuth();
 
-  if (loading) return <span className="account" />;
+  if (loading) return <p className="muted">Loading…</p>;
 
   if (!user) {
     return (
-        <span className="account">
-          <LoginLink />
-        </span>
+        <p>
+          Welcome, guest!
+          <br />
+          <LoginLink>Log in or register</LoginLink>
+        </p>
     );
   }
 
   return (
-      <span className="account">
+      <p>
         Logged in as <strong>{user.username}</strong>
-        {user.role === "Admin" && <span className="tag">admin</span>}
-        {user.isSeized && <span className="tag">seized</span>}
+        {user.role === "Admin" && <span className="tag">[admin]</span>}
+        {user.isSeized && <span className="tag">[seized]</span>}
+        <br />
         <button type="button" className="linklike" onClick={logout}>
           Log out
         </button>
-      </span>
+      </p>
   );
 }
