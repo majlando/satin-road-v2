@@ -7,42 +7,14 @@ import { Api } from "./Api";
 
 export type { CategoryDto, FeaturedVendorDto, ListingDto, ListingRequest, OrderDto, UserDto } from "./Api";
 
-// ---- who we are acting as, remembered in the browser ----------------------
-
-const ACTING_AS_KEY = "satinroad.actingAs";
-
-export function getActingAs(): number | null {
-  try {
-    const saved = localStorage.getItem(ACTING_AS_KEY);
-    return saved ? Number(saved) : null;
-  } catch {
-    return null; // storage can be blocked, e.g. in a private window
-  }
-}
-
-export function setActingAs(userId: number | null) {
-  try {
-    if (userId === null) localStorage.removeItem(ACTING_AS_KEY);
-    else localStorage.setItem(ACTING_AS_KEY, String(userId));
-  } catch {
-    // nothing to do: the choice just will not survive a reload
-  }
-}
-
 // ---- the client -------------------------------------------------------------
 
 export const api = new Api({
   // The generated client points at http://localhost:5080. An empty base URL
   // sends every request to the page's own address instead, where the dev
   // server (or nginx in Docker) passes it on to the API.
+  // Same origin also means the browser sends the login cookie by itself.
   baseUrl: "",
-  // securityWorker runs before every request, and the headers it returns are
-  // added to that request. This is how "Acting as" reaches the API.
-  baseApiParams: { secure: true },
-  securityWorker: () => {
-    const userId = getActingAs();
-    return userId === null ? {} : { headers: { "X-User-Id": String(userId) } };
-  },
 });
 
 // ---- small helpers ----------------------------------------------------------

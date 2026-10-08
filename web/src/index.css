@@ -72,11 +72,15 @@ h2 {
   text-decoration: none;
 }
 
-.acting-as {
+.account {
   margin-left: auto;
   display: flex;
   gap: 0.4rem;
   align-items: center;
+}
+
+.account .tag {
+  margin-left: 0;
 }
 
 .card {

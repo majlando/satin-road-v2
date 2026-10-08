@@ -11,7 +11,7 @@ public class AccessTests
     private static CancellationToken Ct => TestContext.Current.CancellationToken;
 
     [Fact]
-    public async Task No_acting_user_is_401()
+    public async Task Nobody_logged_in_is_401()
     {
         await using var api = new ApiFactory();
         using var client = api.CreateClient();
@@ -22,11 +22,14 @@ public class AccessTests
     }
 
     [Fact]
-    public async Task An_unknown_user_is_401()
+    public async Task A_forged_user_id_header_is_ignored()
     {
         await using var api = new ApiFactory();
+        var user = api.AddUser("shadypete");
+        using var client = api.CreateClient();
+        client.DefaultRequestHeaders.Add("X-User-Id", user.ToString());
 
-        var response = await api.As(999).GetAsync("/api/users/me", Ct);
+        var response = await client.GetAsync("/api/users/me", Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -47,9 +50,97 @@ public class AccessTests
         await using var api = new ApiFactory();
         api.AddUser("ShadyPete");
 
-        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("shadypete"), Ct);
+        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("shadypete", "longenough"), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
+    }
+}
+
+public class AuthTests
+{
+    private static CancellationToken Ct => TestContext.Current.CancellationToken;
+
+    [Fact]
+    public async Task The_right_password_logs_in()
+    {
+        await using var api = new ApiFactory();
+        api.AddUser("shadypete");
+        using var client = api.CreateClient();
+
+        var login = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest("ShadyPete", Passwords.Demo), Ct);
+        var me = await client.GetFromJsonAsync<UserDto>("/api/users/me", Ct);
+
+        login.StatusCode.ShouldBe(HttpStatusCode.OK);
+        me!.Username.ShouldBe("shadypete");
+    }
+
+    [Fact]
+    public async Task A_wrong_password_is_401()
+    {
+        await using var api = new ApiFactory();
+        api.AddUser("shadypete");
+
+        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new LoginRequest("shadypete", "not-it-at-all"), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task An_unknown_username_is_401()
+    {
+        await using var api = new ApiFactory();
+
+        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new LoginRequest("nobody", Passwords.Demo), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task A_user_without_a_password_cannot_log_in()
+    {
+        await using var api = new ApiFactory();
+        api.Db(db => db.InsertWithInt32Identity(new UserRecord { Username = "nopassword" }));
+
+        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new LoginRequest("nopassword", ""), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Logging_out_forgets_the_user()
+    {
+        await using var api = new ApiFactory();
+        using var client = api.As(api.AddUser("shadypete"));
+
+        var logout = await client.PostAsync("/api/auth/logout", null, Ct);
+        var me = await client.GetAsync("/api/users/me", Ct);
+
+        logout.StatusCode.ShouldBe(HttpStatusCode.NoContent);
+        me.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
+    }
+
+    [Fact]
+    public async Task Registering_logs_the_new_user_in()
+    {
+        await using var api = new ApiFactory();
+        using var client = api.CreateClient();
+
+        var created = await client.PostAsJsonAsync("/api/users", new CreateUserRequest("newbie", "longenough"), Ct);
+        var me = await client.GetFromJsonAsync<UserDto>("/api/users/me", Ct);
+
+        created.StatusCode.ShouldBe(HttpStatusCode.Created);
+        me!.Username.ShouldBe("newbie");
+        me.Role.ShouldBe(Roles.User);
+    }
+
+    [Fact]
+    public async Task A_short_password_is_400()
+    {
+        await using var api = new ApiFactory();
+
+        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("newbie", "short"), Ct);
+
+        response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
 }
 
