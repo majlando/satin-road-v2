@@ -80,7 +80,7 @@ export function AccountMenu() {
   if (!user) {
     return (
         <p>
-          Welcome, guest!
+          Welcome, stranger. Nobody here uses real names.
           <br />
           <LoginLink>Log in or register</LoginLink>
         </p>

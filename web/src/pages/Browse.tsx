@@ -29,7 +29,7 @@ export function Browse() {
     const categoryName = categories.find((c) => c.id === categoryId)?.name;
 
     return (
-        <Box title={categoryName ? `Listings: ${categoryName}` : "All listings"}>
+        <Box title={categoryName ? `Market: ${categoryName}` : "Market"}>
             {error && <p className="error">{error}</p>}
             {!listings && !error && <p className="muted">Loading…</p>}
             {listings?.length === 0 && <p className="muted">Nothing for sale here.</p>}
@@ -46,10 +46,10 @@ export function ListingsTable({ listings }: { listings: ListingDto[] }) {
                 <thead>
                 <tr>
                     <th>Title</th>
-                    <th>Vendor</th>
+                    <th>Seller</th>
                     <th>Category</th>
                     <th className="num">Price</th>
-                    <th className="num">Stock</th>
+                    <th className="num">In stock</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -57,7 +57,7 @@ export function ListingsTable({ listings }: { listings: ListingDto[] }) {
                     <tr key={l.id}>
                         <td>
                             <Link to={`/listings/${l.id}`}>{l.title}</Link>
-                            {l.vendorFeatured && <span className="tag">[Featured]</span>}
+                            {l.vendorFeatured && <span className="tag">[Top seller]</span>}
                         </td>
                         <td>
                             <Link to={`/vendors/${l.vendorId}`}>{l.vendorName}</Link>

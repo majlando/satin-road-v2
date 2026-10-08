@@ -41,7 +41,7 @@ export function ListingPage() {
         <>
             <Box title={listing?.title ?? "Listing"}>
                 <p>
-                    <Link to="/">&laquo; Back to browsing</Link>
+                    <Link to="/">&laquo; Back to the market</Link>
                 </p>
 
                 {!listing && !error && <p className="muted">Loading…</p>}
@@ -83,7 +83,7 @@ export function ListingPage() {
                 <Box title="Buy">
                     {!user && <p><LoginLink /> to buy.</p>}
                     {user && user.id === listing.vendorId && (
-                        <p className="muted">This is your own listing. <Link to="/sell">Manage it</Link>.</p>
+                        <p className="muted">This is your own product. <Link to="/sell">Manage it</Link>.</p>
                     )}
                     {user && user.id !== listing.vendorId && listing.stock === 0 && <p className="muted">Sold out.</p>}
                     {user && user.id !== listing.vendorId && listing.stock > 0 && (
@@ -105,7 +105,7 @@ export function ListingPage() {
                     {order && (
                         <p className="success">
                             Bought {order.quantity} for {money(order.totalCents)}.
-                            {order.discountCents > 0 && ` Loyalty discount: ${money(order.discountCents)} off!`}
+                            {order.discountCents > 0 && ` Loyal customer discount: ${money(order.discountCents)} off!`}
                         </p>
                     )}
                     {error && <p className="error">{error}</p>}
@@ -127,12 +127,12 @@ function SeizedScreen() {
                 <br />
                 BUREAU
             </div>
-            <h2>This marketplace listing has been seized</h2>
+            <h2>This shop has been seized</h2>
             <p>
-                The buyer was the FBI. The vendor has been shut down for good and all of their products
+                The buyer was the FBI. The seller has been shut down for good and all of their products
                 removed.
             </p>
-            <Link to="/">Back to browsing</Link>
+            <Link to="/">Back to the market</Link>
         </div>
     );
 }

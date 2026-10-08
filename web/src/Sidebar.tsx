@@ -24,7 +24,7 @@ export function Sidebar() {
 
             <Box title="Categories">
                 <ul className="plain">
-                    <li><Link to="/">All listings</Link></li>
+                    <li><Link to="/">All products</Link></li>
                     {categories.map((c) => (
                         <li key={c.id}>
                             <Link to={`/?category=${c.id}`}>{c.name}</Link>
@@ -33,7 +33,7 @@ export function Sidebar() {
                 </ul>
             </Box>
 
-            <Box title="Featured vendors">
+            <Box title="Top sellers">
                 {featured.length === 0 && <p className="muted">None yet.</p>}
                 <ul className="plain">
                     {featured.map((f) => (

@@ -33,7 +33,7 @@ export function Sell() {
     if (!user) {
         return (
             <Box title="Sell">
-                <p><LoginLink /> to manage your listings.</p>
+                <p><LoginLink /> to manage your products.</p>
             </Box>
         );
     }
@@ -94,8 +94,8 @@ export function Sell() {
 
     return (
         <>
-            <Box title="Your listings">
-                {listings.length === 0 && <p className="muted">You are not selling anything yet.</p>}
+            <Box title="Your products">
+                {listings.length === 0 && <p className="muted">Nothing for sale yet. Time to smuggle something in.</p>}
                 {listings.length > 0 && (
                     <div className="table-wrap">
                         <table>
@@ -158,7 +158,7 @@ export function Sell() {
                 <p className="muted">Change a stock number and click elsewhere to save it.</p>
             </Box>
 
-            <Box title={editingId === null ? "Add a listing" : "Edit listing"}>
+            <Box title={editingId === null ? "Add a product" : "Edit product"}>
                 <form onSubmit={save}>
                     <table className="form-table">
                         <tbody>
@@ -206,7 +206,7 @@ export function Sell() {
                             </td>
                         </tr>
                         <tr>
-                            <th><label htmlFor="price">Price (€):</label></th>
+                            <th><label htmlFor="price">Price ($):</label></th>
                             <td>
                                 <input
                                     id="price"
@@ -239,7 +239,7 @@ export function Sell() {
                         <tr>
                             <th></th>
                             <td>
-                                <button type="submit">{editingId === null ? "Add listing" : "Save changes"}</button>{" "}
+                                <button type="submit">{editingId === null ? "Add product" : "Save changes"}</button>{" "}
                                 {editingId !== null && (
                                     <button
                                         type="button"

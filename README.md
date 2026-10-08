@@ -11,8 +11,8 @@ docker compose up --build
 Open <http://localhost:8080>. The API's documentation is at
 <http://localhost:8080/swagger>.
 
-Log in as `admin` with the password `password`. Every demo user (`shadypete`,
-`grandmasoap`, `loyalbuyer`, ...) has that same password, or create your own
+Log in as `admin` with the password `password`. Every demo user (`vitocorleone`,
+`walterwhite`, `tonymontana`, ...) has that same password, or create your own
 account from the login page. Logins are kept in a cookie whose signing keys
 live on the data volume, so restarting the API keeps everyone logged in.
 

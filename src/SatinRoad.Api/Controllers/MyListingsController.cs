@@ -77,7 +77,7 @@ public class MyListingsController(AppDb db, CurrentUser currentUser, Catalog cat
         if (request.PriceCents <= 0)
             throw AppException.BadRequest("Price must be more than zero.");
         if (request.PriceCents > Limits.PriceCents)
-            throw AppException.BadRequest($"Price can be at most {Limits.PriceCents / 100:N0}.");
+            throw AppException.BadRequest($"Price can be at most ${Limits.PriceCents / 100:N0}.");
         ValidateStock(request.Stock);
         if (!await db.Categories.AnyAsync(c => c.Id == request.CategoryId))
             throw AppException.BadRequest("That category does not exist.");
