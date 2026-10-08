@@ -8,7 +8,9 @@ public record UserDto(int Id, string Username, string Role, bool IsSeized)
     public static UserDto From(UserRecord u) => new(u.Id, u.Username, u.Role, u.IsSeized);
 }
 
-public record CreateUserRequest(string Username);
+public record CreateUserRequest(string Username, string Password);
+
+public record LoginRequest(string Username, string Password);
 
 public record CategoryDto(int Id, string Name)
 {

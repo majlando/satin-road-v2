@@ -11,7 +11,10 @@ CREATE TABLE IF NOT EXISTS users (
                                      id        INTEGER PRIMARY KEY AUTOINCREMENT,
                                      username  TEXT    NOT NULL UNIQUE COLLATE NOCASE,
                                      role      TEXT    NOT NULL DEFAULT 'User' CHECK (role IN ('User', 'Admin')),
-    is_seized INTEGER NOT NULL DEFAULT 0
+    is_seized INTEGER NOT NULL DEFAULT 0,
+    -- A PBKDF2 hash from ASP.NET Core's PasswordHasher. Empty means the user
+    -- cannot log in.
+    password_hash TEXT NOT NULL DEFAULT ''
     );
 
 CREATE TABLE IF NOT EXISTS categories (

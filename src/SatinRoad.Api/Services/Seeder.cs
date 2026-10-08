@@ -5,14 +5,18 @@ namespace SatinRoad.Api.Services;
 /// <summary>
 /// Fills the database at startup. The admin is always created. The demo data,
 /// which sets up every rule so it can be shown straight away, is only added
-/// when Seed:Demo is true and there are no listings yet.
+/// when Seed:Demo is true and there are no listings yet. Every seeded user's
+/// password is <see cref="Passwords.Demo"/>.
 /// </summary>
 public static class Seeder
 {
+    // Hashing is slow on purpose, so hash once and give every user the same hash.
+    private static readonly Lazy<string> DemoHash = new(() => Passwords.Hash(Passwords.Demo));
+
     public static void Run(AppDb db, bool demo)
     {
         if (!db.Users.Any(u => u.Username == "admin"))
-            db.Insert(new UserRecord { Username = "admin", Role = Roles.Admin });
+            db.Insert(new UserRecord { Username = "admin", Role = Roles.Admin, PasswordHash = DemoHash.Value });
 
         if (!demo || db.Listings.Any()) return;
 
@@ -68,7 +72,7 @@ public static class Seeder
     }
 
     private static int AddUser(AppDb db, string username) =>
-        db.InsertWithInt32Identity(new UserRecord { Username = username });
+        db.InsertWithInt32Identity(new UserRecord { Username = username, PasswordHash = DemoHash.Value });
 
     private static int AddCategory(AppDb db, string name) =>
         db.InsertWithInt32Identity(new CategoryRecord { Name = name });

@@ -1,3 +1,4 @@
+using System.Net.Http.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -32,11 +33,20 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
             services.AddSingleton<IRaidRoller>(new FuncRoller(() => NextRoll)));
     }
 
-    /// <summary>A client that acts as the given user.</summary>
+    /// <summary>
+    /// Every user added by <see cref="AddUser"/> has the password <see cref="Passwords.Demo"/>.
+    /// Hashing is slow on purpose, so it is done once for all tests.
+    /// </summary>
+    private static readonly Lazy<string> DemoHash = new(() => Passwords.Hash(Passwords.Demo));
+
+    /// <summary>A client logged in as the given user. It keeps the auth cookie between requests.</summary>
     public HttpClient As(int userId)
     {
+        var username = Db(db => db.Users.Single(u => u.Id == userId).Username);
         var client = CreateClient();
-        client.DefaultRequestHeaders.Add(CurrentUser.Header, userId.ToString());
+        var response = client.PostAsJsonAsync("/api/auth/login", new LoginRequest(username, Passwords.Demo))
+            .GetAwaiter().GetResult();
+        response.EnsureSuccessStatusCode();
         return client;
     }
 
@@ -48,7 +58,7 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     }
 
     public int AddUser(string username, string role = Roles.User) =>
-        Db(db => db.InsertWithInt32Identity(new UserRecord { Username = username, Role = role }));
+        Db(db => db.InsertWithInt32Identity(new UserRecord { Username = username, Role = role, PasswordHash = DemoHash.Value }));
 
     public int AddCategory(string name) =>
         Db(db => db.InsertWithInt32Identity(new CategoryRecord { Name = name }));

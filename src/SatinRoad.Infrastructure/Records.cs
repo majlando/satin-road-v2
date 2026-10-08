@@ -15,6 +15,9 @@ public class UserRecord
 
     /// <summary>Set by an FBI raid, and never unset: a raid is permanent.</summary>
     [Column("is_seized")] public bool IsSeized { get; set; }
+
+    /// <summary>Never the password itself. Empty means the user cannot log in.</summary>
+    [Column("password_hash")] public string PasswordHash { get; set; } = "";
 }
 
 [Table("categories")]

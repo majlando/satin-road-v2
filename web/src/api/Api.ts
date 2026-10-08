@@ -22,6 +22,7 @@ export interface CategoryRequest {
 
 export interface CreateUserRequest {
   username: string;
+  password: string;
 }
 
 export interface FeaturedVendorDto {
@@ -58,6 +59,11 @@ export interface ListingRequest {
   priceCents: number;
   /** @format int32 */
   stock: number;
+}
+
+export interface LoginRequest {
+  username: string;
+  password: string;
 }
 
 export interface OrderDto {
@@ -406,6 +412,38 @@ export class Api<
       this.request<void, any>({
         path: `/health`,
         method: "GET",
+        ...params,
+      }),
+  };
+  auth = {
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name AuthLoginCreate
+     * @request POST:/api/auth/login
+     */
+    authLoginCreate: (data: LoginRequest, params: RequestParams = {}) =>
+      this.request<UserDto, any>({
+        path: `/api/auth/login`,
+        method: "POST",
+        body: data,
+        type: ContentType.Json,
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Auth
+     * @name AuthLogoutCreate
+     * @request POST:/api/auth/logout
+     */
+    authLogoutCreate: (params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/auth/logout`,
+        method: "POST",
         ...params,
       }),
   };

@@ -1,12 +1,12 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useActingAs } from "../ActingAs";
+import { LoginLink, useAuth } from "../Auth";
 import { api, errorText, money, type CategoryDto, type ListingDto, type ListingRequest } from "../api/client";
 
 const EMPTY_FORM = { categoryId: 0, title: "", description: "", price: "", stock: "1" };
 
-/** The acting user's own listings: add, edit, change stock, delete. */
+/** The logged-in user's own listings: add, edit, change stock, delete. */
 export function Sell() {
-    const { user } = useActingAs();
+    const { user } = useAuth();
     const [listings, setListings] = useState<ListingDto[]>([]);
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [form, setForm] = useState(EMPTY_FORM);
@@ -21,7 +21,7 @@ export function Sell() {
         }
     }
 
-    // Reload whenever a different user is chosen.
+    // Reload whenever a different user logs in.
     useEffect(() => {
         if (!user) return;
         reload();
@@ -32,7 +32,7 @@ export function Sell() {
         return (
             <section className="card">
                 <h2>Sell</h2>
-                <p className="muted">Choose who you are acting as (top right) to manage your listings.</p>
+                <p className="muted"><LoginLink /> to manage your listings.</p>
             </section>
         );
     }

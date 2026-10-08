@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useActingAs } from "../ActingAs";
+import { LoginLink, useAuth } from "../Auth";
 import { api, errorText, type CategoryDto } from "../api/client";
 
 /** Category management. Only shown to admins; the API checks as well. */
 export function Admin() {
-    const { user } = useActingAs();
+    const { user } = useAuth();
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [newName, setNewName] = useState("");
     const [error, setError] = useState("");
@@ -25,7 +25,10 @@ export function Admin() {
         return (
             <section className="card">
                 <h2>Admin: categories</h2>
-                <p className="muted">Only an admin can manage categories. Act as "admin" (top right).</p>
+                <p className="muted">
+                    Only an admin can manage categories.{" "}
+                    {user ? "You are not one." : <><LoginLink /> as an admin.</>}
+                </p>
             </section>
         );
     }

@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using LinqToDB.DataProvider.SQLite;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using LinqToDB.Extensions.DependencyInjection;
 using LinqToDB.Extensions.Logging;
 using Microsoft.Data.Sqlite;
@@ -20,6 +21,28 @@ builder.Services.AddOpenApi();
 builder.Services.AddProblemDetails();
 builder.Services.AddExceptionHandler<AppExceptionHandler>();
 builder.Services.AddHttpContextAccessor();
+
+// Login sets this cookie. It is an API, so a request that is not allowed gets
+// a 401 or 403 instead of the default redirect to a login page.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(o =>
+    {
+        o.Cookie.Name = "satinroad.auth";
+        o.Cookie.HttpOnly = true;
+        o.Cookie.SameSite = SameSiteMode.Lax;
+        o.ExpireTimeSpan = TimeSpan.FromDays(7);
+        o.SlidingExpiration = true;
+        o.Events.OnRedirectToLogin = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            return Task.CompletedTask;
+        };
+        o.Events.OnRedirectToAccessDenied = context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            return Task.CompletedTask;
+        };
+    });
 
 builder.Services.AddLinqToDBContext<AppDb>((provider, options) =>
     options
@@ -45,6 +68,8 @@ app.UseExceptionHandler();
 
 app.MapOpenApi();                                                            // /openapi/v1.json
 app.UseSwaggerUI(o => o.SwaggerEndpoint("/openapi/v1.json", "Satin Road"));  // /swagger
+
+app.UseAuthentication();
 
 app.MapControllers();
 

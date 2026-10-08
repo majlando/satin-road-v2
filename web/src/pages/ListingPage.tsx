@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
-import { useActingAs } from "../ActingAs";
+import { LoginLink, useAuth } from "../Auth";
 import { api, errorText, money, type ListingDto, type OrderDto } from "../api/client";
 
 /** One listing, with a quantity field and a Buy button. */
 export function ListingPage() {
     const id = Number(useParams().id);
-    const { user, reloadUsers } = useActingAs();
+    const { user } = useAuth();
     const [listing, setListing] = useState<ListingDto | null>(null);
     const [quantity, setQuantity] = useState(1);
     const [order, setOrder] = useState<OrderDto | null>(null);
@@ -22,9 +22,7 @@ export function ListingPage() {
         try {
             const result = (await api.orders.ordersCreate({ listingId: id, quantity })).data;
             setOrder(result);
-            if (result.status === "Seized") {
-                await reloadUsers(); // the vendor is now marked seized in the dropdown
-            } else {
+            if (result.status !== "Seized") {
                 setListing((await api.listings.listingsDetail({ id })).data); // show the new stock
             }
         } catch (e) {
@@ -52,7 +50,7 @@ export function ListingPage() {
                     <p className="price">{money(listing.priceCents)}</p>
                     <p className="muted">{listing.stock > 0 ? `${listing.stock} in stock` : "Sold out"}</p>
 
-                    {!user && <p className="muted">Choose who you are acting as (top right) to buy.</p>}
+                    {!user && <p className="muted"><LoginLink /> to buy.</p>}
 
                     {user && listing.stock > 0 && (
                         <div className="buy">
