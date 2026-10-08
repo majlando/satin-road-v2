@@ -3,16 +3,13 @@ namespace SatinRoad.Api.Controllers;
 /// <summary>Selling: the acting user's own listings.</summary>
 [ApiController]
 [Route("api/my/listings")]
-public class MyListingsController(AppDb db, CurrentUser currentUser) : ControllerBase
+public class MyListingsController(AppDb db, CurrentUser currentUser, Catalog catalog) : ControllerBase
 {
     [HttpGet]
     public async Task<List<ListingDto>> List()
     {
         var me = await currentUser.GetAsync();
-        return await Queries.VisibleListings(db)
-            .Where(x => x.VendorId == me.Id)
-            .OrderBy(x => x.Title)
-            .ToListAsync();
+        return await catalog.ListingsAsync(q => q.Where(x => x.VendorId == me.Id));
     }
 
     [HttpPost]
@@ -25,7 +22,7 @@ public class MyListingsController(AppDb db, CurrentUser currentUser) : Controlle
         Apply(listing, request);
         listing.Id = await db.InsertWithInt32IdentityAsync(listing);
 
-        return Created($"/api/listings/{listing.Id}", await Queries.VisibleListings(db).FirstAsync(x => x.Id == listing.Id));
+        return Created($"/api/listings/{listing.Id}", await catalog.ListingAsync(listing.Id));
     }
 
     [HttpPut("{id:int}")]
@@ -36,19 +33,18 @@ public class MyListingsController(AppDb db, CurrentUser currentUser) : Controlle
 
         Apply(listing, request);
         await db.UpdateAsync(listing);
-        return await Queries.VisibleListings(db).FirstAsync(x => x.Id == id);
+        return await catalog.ListingAsync(id);
     }
 
     [HttpPatch("{id:int}/stock")]
     public async Task<ListingDto> SetStock(int id, StockRequest request)
     {
         var listing = await FindMineAsync(id);
-        if (request.Stock < 0)
-            throw AppException.BadRequest("Stock cannot be negative.");
+        ValidateStock(request.Stock);
 
         listing.Stock = request.Stock;
         await db.UpdateAsync(listing);
-        return await Queries.VisibleListings(db).FirstAsync(x => x.Id == id);
+        return await catalog.ListingAsync(id);
     }
 
     /// <summary>A soft delete: the row stays, so old orders still point at it.</summary>
@@ -76,12 +72,23 @@ public class MyListingsController(AppDb db, CurrentUser currentUser) : Controlle
     {
         if (string.IsNullOrWhiteSpace(request.Title))
             throw AppException.BadRequest("Title is required.");
+        Limits.MaxLength(request.Title.Trim(), Limits.Title, "Title");
+        Limits.MaxLength(request.Description.Trim(), Limits.Description, "Description");
         if (request.PriceCents <= 0)
             throw AppException.BadRequest("Price must be more than zero.");
-        if (request.Stock < 0)
-            throw AppException.BadRequest("Stock cannot be negative.");
+        if (request.PriceCents > Limits.PriceCents)
+            throw AppException.BadRequest($"Price can be at most {Limits.PriceCents / 100:N0}.");
+        ValidateStock(request.Stock);
         if (!await db.Categories.AnyAsync(c => c.Id == request.CategoryId))
             throw AppException.BadRequest("That category does not exist.");
+    }
+
+    private static void ValidateStock(int stock)
+    {
+        if (stock < 0)
+            throw AppException.BadRequest("Stock cannot be negative.");
+        if (stock > Limits.Stock)
+            throw AppException.BadRequest($"Stock can be at most {Limits.Stock:N0}.");
     }
 
     private static void Apply(ListingRecord listing, ListingRequest request)

@@ -39,6 +39,7 @@ export interface ListingDto {
   /** @format int32 */
   vendorId: number;
   vendorName: string;
+  vendorFeatured: boolean;
   /** @format int32 */
   categoryId: number;
   categoryName: string;
@@ -102,6 +103,17 @@ export interface UserDto {
   isSeized: boolean;
 }
 
+export interface VendorDto {
+  /** @format int32 */
+  id: number;
+  name: string;
+  isSeized: boolean;
+  /** @format int32 */
+  sales: number;
+  isFeatured: boolean;
+  listings: ListingDto[];
+}
+
 export interface CategoriesUpdateParams {
   /** @format int32 */
   id: number;
@@ -133,6 +145,11 @@ export interface MyListingsDeleteParams {
 }
 
 export interface MyListingsStockPartialUpdateParams {
+  /** @format int32 */
+  id: number;
+}
+
+export interface VendorsDetailParams {
   /** @format int32 */
   id: number;
 }
@@ -671,12 +688,12 @@ export class Api<
      * No description
      *
      * @tags Users
-     * @name UsersList
-     * @request GET:/api/users
+     * @name UsersMeList
+     * @request GET:/api/users/me
      */
-    usersList: (params: RequestParams = {}) =>
-      this.request<UserDto[], any>({
-        path: `/api/users`,
+    usersMeList: (params: RequestParams = {}) =>
+      this.request<UserDto, any>({
+        path: `/api/users/me`,
         method: "GET",
         format: "json",
         ...params,
@@ -698,21 +715,6 @@ export class Api<
         format: "json",
         ...params,
       }),
-
-    /**
-     * No description
-     *
-     * @tags Users
-     * @name UsersMeList
-     * @request GET:/api/users/me
-     */
-    usersMeList: (params: RequestParams = {}) =>
-      this.request<UserDto, any>({
-        path: `/api/users/me`,
-        method: "GET",
-        format: "json",
-        ...params,
-      }),
   };
   vendors = {
     /**
@@ -725,6 +727,21 @@ export class Api<
     vendorsFeaturedList: (params: RequestParams = {}) =>
       this.request<FeaturedVendorDto[], any>({
         path: `/api/vendors/featured`,
+        method: "GET",
+        format: "json",
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Vendors
+     * @name VendorsDetail
+     * @request GET:/api/vendors/{id}
+     */
+    vendorsDetail: ({ id }: VendorsDetailParams, params: RequestParams = {}) =>
+      this.request<VendorDto, any>({
+        path: `/api/vendors/${id}`,
         method: "GET",
         format: "json",
         ...params,

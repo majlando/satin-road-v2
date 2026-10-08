@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using LinqToDB.DataProvider.SQLite;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.DataProtection;
 using LinqToDB.Extensions.DependencyInjection;
 using LinqToDB.Extensions.Logging;
 using Microsoft.Data.Sqlite;
@@ -44,12 +45,21 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         };
     });
 
+// The keys that sign the login cookie. Without a folder they live in memory,
+// so every restart would log everyone out. Docker points this at the data volume.
+var keysPath = builder.Configuration["DataProtection:KeysPath"];
+if (!string.IsNullOrWhiteSpace(keysPath))
+    builder.Services.AddDataProtection()
+        .SetApplicationName("SatinRoad")
+        .PersistKeysToFileSystem(new DirectoryInfo(keysPath));
+
 builder.Services.AddLinqToDBContext<AppDb>((provider, options) =>
     options
         .UseSQLite(BuildConnectionString(builder.Configuration), SQLiteProvider.Microsoft)
         .UseDefaultLogging(provider));
 
 builder.Services.AddScoped<CurrentUser>();
+builder.Services.AddScoped<Catalog>();
 builder.Services.AddSingleton<IRaidRoller, RandomRaidRoller>();
 builder.Services.AddSingleton(services =>
     new RaidPolicy(services.GetRequiredService<IConfiguration>().GetValue("Fbi:RaidChance", 0.01)));

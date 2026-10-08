@@ -39,6 +39,7 @@ export function Login() {
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
                                 autoComplete="username"
+                                maxLength={32}
                                 autoFocus
                                 required
                             />
@@ -54,6 +55,7 @@ export function Login() {
                                 onChange={(e) => setPassword(e.target.value)}
                                 autoComplete={registering ? "new-password" : "current-password"}
                                 minLength={registering ? 8 : undefined}
+                                maxLength={128}
                                 required
                             />
                         </td>

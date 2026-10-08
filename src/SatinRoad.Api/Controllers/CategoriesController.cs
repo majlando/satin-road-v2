@@ -56,6 +56,7 @@ public class CategoriesController(AppDb db, CurrentUser currentUser) : Controlle
         var name = raw.Trim();
         if (name.Length == 0)
             throw AppException.BadRequest("Name is required.");
+        Limits.MaxLength(name, Limits.CategoryName, "Name");
 
         // The column is COLLATE NOCASE, so "soap" and "Soap" count as the same.
         if (await db.Categories.AnyAsync(c => c.Name == name && c.Id != exceptId))

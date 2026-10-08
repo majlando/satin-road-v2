@@ -13,8 +13,8 @@ Open <http://localhost:8080>. The API's documentation is at
 
 Log in as `admin` with the password `password`. Every demo user (`shadypete`,
 `grandmasoap`, `loyalbuyer`, ...) has that same password, or create your own
-account from the login page. Logins are kept in a cookie; restarting the API
-container logs everyone out.
+account from the login page. Logins are kept in a cookie whose signing keys
+live on the data volume, so restarting the API keeps everyone logged in.
 
 The `users` table gained a `password_hash` column. There are no migrations, so
 a database from before login must be reset (below) before it can be logged into.

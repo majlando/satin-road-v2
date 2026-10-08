@@ -6,6 +6,8 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Production
       ConnectionStrings__Default: Data Source=/app/data/satinroad.db
+      # Login cookie keys, on the volume so a restart does not log everyone out.
+      DataProtection__KeysPath: /app/data/keys
       # Raise to 1 to make every purchase an FBI raid, for the demo.
       Fbi__RaidChance: ${FBI_RAID_CHANCE:-0.01}
       Seed__Demo: "true"

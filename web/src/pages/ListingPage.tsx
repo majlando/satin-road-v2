@@ -19,6 +19,10 @@ export function ListingPage() {
 
     async function buy() {
         setError("");
+        if (!Number.isInteger(quantity) || quantity < 1) {
+            setError("Choose a quantity of at least 1.");
+            return;
+        }
         setOrder(null);
         try {
             const result = (await api.orders.ordersCreate({ listingId: id, quantity })).data;
@@ -78,8 +82,11 @@ export function ListingPage() {
             {listing && (
                 <Box title="Buy">
                     {!user && <p><LoginLink /> to buy.</p>}
-                    {user && listing.stock === 0 && <p className="muted">Sold out.</p>}
-                    {user && listing.stock > 0 && (
+                    {user && user.id === listing.vendorId && (
+                        <p className="muted">This is your own listing. <Link to="/sell">Manage it</Link>.</p>
+                    )}
+                    {user && user.id !== listing.vendorId && listing.stock === 0 && <p className="muted">Sold out.</p>}
+                    {user && user.id !== listing.vendorId && listing.stock > 0 && (
                         <p>
                             <label>
                                 Quantity:{" "}

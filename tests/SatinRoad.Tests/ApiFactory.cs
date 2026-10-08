@@ -63,12 +63,13 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     public int AddCategory(string name) =>
         Db(db => db.InsertWithInt32Identity(new CategoryRecord { Name = name }));
 
-    public int AddListing(int vendorId, int categoryId, long priceCents = 1_000, int stock = 5) =>
+    public int AddListing(int vendorId, int categoryId, long priceCents = 1_000, int stock = 5,
+                          string title = "Something suspicious") =>
         Db(db => db.InsertWithInt32Identity(new ListingRecord
         {
             VendorId = vendorId,
             CategoryId = categoryId,
-            Title = "Something suspicious",
+            Title = title,
             Description = "No questions asked",
             PriceCents = priceCents,
             Stock = stock,
