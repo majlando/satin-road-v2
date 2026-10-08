@@ -17,7 +17,7 @@ export function App() {
             <div className="page">
                 <header className="header">
                     <h1>
-                        <Link to="/">Satin Road</Link>
+                        <Link to="/">Satin Road a.k.a. Golden Route</Link>
                     </h1>
                     <p>The smoothest trade route on the web</p>
                 </header>
@@ -50,7 +50,7 @@ export function App() {
                         <Link to="/">Market</Link> | <Link to="/sell">Sell</Link> |{" "}
                         <Link to="/about">About</Link>
                     </p>
-                    <p>Satire. Every seller, product and order in here is made up for a school assignment.</p>
+                    <p>This is a school assignment.</p>
                     <p>&copy; Satin Road</p>
                 </footer>
             </div>

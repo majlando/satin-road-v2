@@ -7,7 +7,7 @@ export function About() {
         <>
             <Box title="About Satin Road">
                 <p>
-                    Satin Road is a <strong>fictional</strong> black market, made as satire for a school
+                    Satin Road is a <strong>fictional</strong> black market, made for a school
                     assignment. Nothing here is real: not the sellers, not the products and not the orders.
                 </p>
             </Box>
