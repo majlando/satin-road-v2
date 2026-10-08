@@ -1,14 +1,14 @@
-/* System fonts only: no webfont download, which keeps the page light. */
+/* Kept deliberately simple: system fonts, browser-default controls, few colours. */
 :root {
-  --bg: #12101a;
-  --surface: #1c1926;
-  --border: #322c44;
-  --text: #ece9f5;
-  --muted: #a49cbd;
-  --accent: #c9a227;
-  --danger: #d1495b;
-  --radius: 8px;
-  color-scheme: dark;
+  --bg: #fff;
+  --text: #1a1a1a;
+  --muted: #666;
+  --link: #0645ad;
+  --border: #ddd;
+  --header: #f4f4f4;
+  --danger: #b00020;
+  --ok: #1b7a33;
+  color-scheme: light;
 }
 
 *,
@@ -26,29 +26,38 @@ body {
 }
 
 a {
-  color: var(--accent);
+  color: var(--link);
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
 }
 
 .shell {
-  max-width: 64rem;
+  max-width: 60rem;
   margin: 0 auto;
-  padding: 0 1rem 3rem;
+  padding: 0 1rem 2rem;
 }
 
 .masthead {
   display: flex;
   flex-wrap: wrap;
-  gap: 1rem;
-  align-items: baseline;
-  justify-content: space-between;
-  padding: 1.25rem 0;
+  gap: 0.5rem 1.5rem;
+  align-items: center;
+  padding: 1rem 0;
   border-bottom: 1px solid var(--border);
+  margin-bottom: 1.5rem;
 }
 
 .masthead h1 {
   margin: 0;
-  font-size: 1.5rem;
-  letter-spacing: 0.02em;
+  font-size: 1.25rem;
+}
+
+.masthead .home {
+  color: inherit;
+  text-decoration: none;
 }
 
 .masthead nav {
@@ -56,12 +65,22 @@ a {
   gap: 1rem;
 }
 
+/* The page you are on is plain text, not a link-looking link. */
+.masthead nav a.active {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.acting-as {
+  margin-left: auto;
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
 .card {
-  margin: 1.5rem 0;
-  padding: 1rem 1.25rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  margin: 0 0 2rem;
 }
 
 .muted {
@@ -69,8 +88,10 @@ a {
 }
 
 .disclaimer {
-  margin-top: 2rem;
-  font-size: 0.875rem;
+  margin-top: 3rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
   color: var(--muted);
 }
 
@@ -79,78 +100,65 @@ input,
 select,
 textarea {
   font: inherit;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.35rem 0.6rem;
 }
 
-button {
-  cursor: pointer;
-}
-
-button:hover,
-button.active {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.acting-as {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-}
-
-.filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.grid {
+/* Browse page: categories on the left, listings on the right. */
+.layout {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: 10rem 1fr;
+  gap: 2rem;
 }
 
-.listing {
-  margin: 0;
-  color: var(--text);
-  text-decoration: none;
+@media (max-width: 40rem) {
+  .layout {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }
 
-.listing:hover {
-  border-color: var(--accent);
+.sidebar h2 {
+  font-size: 1rem;
 }
 
-.listing h3 {
-  margin: 0.25rem 0;
-  font-size: 1.05rem;
-}
-
-.featured-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 1.5rem;
+.sidebar ul {
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
-.badge {
-  font-size: 0.75rem;
-  color: var(--bg);
-  background: var(--accent);
-  border-radius: 999px;
-  padding: 0.1rem 0.5rem;
+.sidebar li {
+  margin-bottom: 0.25rem;
+}
+
+/* A button that looks like a link, so filters stay buttons for the keyboard. */
+.linklike {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link);
+  text-decoration: underline;
+  text-align: left;
+  cursor: pointer;
+}
+
+.linklike[aria-pressed="true"] {
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.featured {
+  margin: 0 0 1.5rem;
+}
+
+.tag {
+  margin-left: 0.4rem;
+  font-size: 0.8rem;
+  color: var(--muted);
 }
 
 .price {
-  font-size: 1.25rem;
   font-weight: 600;
-  color: var(--accent);
 }
 
 .buy {
@@ -168,7 +176,12 @@ button.active {
 }
 
 .success {
-  color: #6bc38a;
+  color: var(--ok);
+}
+
+/* Wide tables scroll sideways on a phone instead of squashing. */
+.table-wrap {
+  overflow-x: auto;
 }
 
 table {
@@ -178,9 +191,19 @@ table {
 
 th,
 td {
-  padding: 0.4rem;
+  padding: 0.4rem 0.5rem;
   border-bottom: 1px solid var(--border);
   text-align: left;
+}
+
+th {
+  background: var(--header);
+  font-weight: 600;
+}
+
+.num {
+  text-align: right;
+  white-space: nowrap;
 }
 
 td input {
@@ -217,8 +240,13 @@ td input {
   gap: 1rem;
   padding: 1rem;
   text-align: center;
-  background: #0b0a10;
+  background: #111;
+  color: #fff;
   z-index: 10;
+}
+
+.seized a {
+  color: #9cf;
 }
 
 .seal {
@@ -226,9 +254,9 @@ td input {
   place-content: center;
   width: 10rem;
   height: 10rem;
-  border: 6px double var(--accent);
+  border: 6px double #e0b000;
   border-radius: 50%;
-  color: var(--accent);
+  color: #e0b000;
   font-weight: 700;
   line-height: 1.2;
   letter-spacing: 0.1em;

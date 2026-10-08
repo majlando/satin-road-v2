@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { api, errorText, money, type CategoryDto, type FeaturedVendorDto, type ListingDto } from "../api/client";
 
-/** The landing page: featured vendors, category filter, and the listing grid. */
+/** The landing page: category sidebar, featured vendors, and the listings table. */
 export function Browse() {
     const [categories, setCategories] = useState<CategoryDto[]>([]);
     const [featured, setFeatured] = useState<FeaturedVendorDto[]>([]);
@@ -28,49 +28,78 @@ export function Browse() {
     );
 
     return (
-        <>
-            {featured.length > 0 && (
-                <section className="card">
-                    <h2>Featured vendors</h2>
-                    <ul className="featured-list">
-                        {featured.map((f) => (
-                            <li key={f.vendorId}>
-                                <strong>{f.vendorName}</strong> <span className="muted">{f.sales} sales</span>
-                            </li>
-                        ))}
-                    </ul>
-                </section>
-            )}
+        <div className="layout">
+            <aside className="sidebar">
+                <h2>Categories</h2>
+                <ul>
+                    <li>
+                        <button
+                            className="linklike"
+                            aria-pressed={categoryId === undefined}
+                            onClick={() => setCategoryId(undefined)}
+                        >
+                            All
+                        </button>
+                    </li>
+                    {categories.map((c) => (
+                        <li key={c.id}>
+                            <button
+                                className="linklike"
+                                aria-pressed={categoryId === c.id}
+                                onClick={() => setCategoryId(c.id)}
+                            >
+                                {c.name}
+                            </button>
+                        </li>
+                    ))}
+                </ul>
+            </aside>
 
             <section>
-                <h2>Listings</h2>
-                <div className="filters">
-                    <button className={categoryId === undefined ? "active" : ""} onClick={() => setCategoryId(undefined)}>
-                        All
-                    </button>
-                    {categories.map((c) => (
-                        <button key={c.id} className={categoryId === c.id ? "active" : ""} onClick={() => setCategoryId(c.id)}>
-                            {c.name}
-                        </button>
-                    ))}
-                </div>
+                {featured.length > 0 && (
+                    <p className="featured">
+                        <strong>Featured vendors:</strong>{" "}
+                        {featured.map((f, i) => (
+                            <span key={f.vendorId}>
+                                {i > 0 && ", "}
+                                {f.vendorName} <span className="muted">({f.sales} sales)</span>
+                            </span>
+                        ))}
+                    </p>
+                )}
 
+                <h2>Listings</h2>
                 {error && <p className="error">{error}</p>}
                 {sorted.length === 0 && !error && <p className="muted">Nothing for sale here.</p>}
 
-                <div className="grid">
-                    {sorted.map((l) => (
-                        <Link key={l.id} to={`/listings/${l.id}`} className="card listing">
-                            {featuredIds.has(l.vendorId) && <span className="badge">Featured</span>}
-                            <h3>{l.title}</h3>
-                            <p className="muted">
-                                {l.vendorName} · {l.categoryName}
-                            </p>
-                            <p className="price">{money(l.priceCents)}</p>
-                        </Link>
-                    ))}
-                </div>
+                {sorted.length > 0 && (
+                    <div className="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Vendor</th>
+                                <th>Category</th>
+                                <th className="num">Price</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {sorted.map((l) => (
+                                <tr key={l.id}>
+                                    <td>
+                                        <Link to={`/listings/${l.id}`}>{l.title}</Link>
+                                        {featuredIds.has(l.vendorId) && <span className="tag">Featured</span>}
+                                    </td>
+                                    <td>{l.vendorName}</td>
+                                    <td>{l.categoryName}</td>
+                                    <td className="num">{money(l.priceCents)}</td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
             </section>
-        </>
+        </div>
     );
 }
