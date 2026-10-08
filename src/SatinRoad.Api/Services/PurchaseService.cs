@@ -20,7 +20,7 @@ public class PurchaseService(AppDb db, RaidPolicy raids, IRaidRoller roller)
         // Checked before "removed": a raid removes every listing, and buying
         // from a raided vendor must say why it failed.
         if (vendor.IsSeized)
-            throw AppException.Conflict("This vendor was shut down by the FBI.");
+            throw AppException.Conflict("This seller was shut down by the FBI.");
         if (listing.IsRemoved)
             throw AppException.NotFound("Listing");
         if (vendor.Id == buyer.Id)

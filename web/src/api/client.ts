@@ -19,9 +19,11 @@ export const api = new Api({
 
 // ---- small helpers ----------------------------------------------------------
 
-/** 2500 cents → "€25.00". Money is always whole cents until it is shown. */
+const dollars = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
+/** 2500 cents → "$25.00", 100000000 → "$1,000,000.00". Money is always whole cents until it is shown. */
 export function money(cents: number): string {
-  return `€${(cents / 100).toFixed(2)}`;
+  return dollars.format(cents / 100);
 }
 
 /**

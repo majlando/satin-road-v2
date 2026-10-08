@@ -17,9 +17,9 @@ export function Vendor() {
     }, [id]);
 
     return (
-        <Box title={`Vendor: ${vendor?.name ?? "…"}`}>
+        <Box title={`Seller: ${vendor?.name ?? "…"}`}>
             <p>
-                <Link to="/">&laquo; Back to browsing</Link>
+                <Link to="/">&laquo; Back to the market</Link>
             </p>
             {error && <p className="error">{error}</p>}
             {!vendor && !error && <p className="muted">Loading…</p>}
@@ -29,12 +29,12 @@ export function Vendor() {
                         <p className="error">This shop was shut down by the FBI.</p>
                     ) : (
                         <p>
-                            {vendor.isFeatured && <><span className="tag">[Featured]</span>{" "}</>}
+                            {vendor.isFeatured && <><span className="tag">[Top seller]</span>{" "}</>}
                             {vendor.sales} {vendor.sales === 1 ? "sale" : "sales"}.
                         </p>
                     )}
                     {!vendor.isSeized && vendor.listings.length === 0 && (
-                        <p className="muted">This vendor has nothing for sale.</p>
+                        <p className="muted">This seller has nothing for sale.</p>
                     )}
                     {vendor.listings.length > 0 && <ListingsTable listings={vendor.listings} />}
                 </>

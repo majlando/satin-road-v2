@@ -19,11 +19,11 @@ export function App() {
                     <h1>
                         <Link to="/">Satin Road</Link>
                     </h1>
-                    <p>The finest fictional marketplace on the web</p>
+                    <p>The smoothest trade route on the web</p>
                 </header>
 
                 <nav className="navbar">
-                    <NavLink to="/" end>Browse</NavLink>
+                    <NavLink to="/" end>Market</NavLink>
                     <NavLink to="/sell">Sell</NavLink>
                     <NavLink to="/admin">Admin</NavLink>
                     <NavLink to="/about">About</NavLink>
@@ -47,10 +47,10 @@ export function App() {
 
                 <footer className="footer">
                     <p>
-                        <Link to="/">Browse</Link> | <Link to="/sell">Sell</Link> |{" "}
+                        <Link to="/">Market</Link> | <Link to="/sell">Sell</Link> |{" "}
                         <Link to="/about">About</Link>
                     </p>
-                    <p>Satire. Every vendor, product and order in here is made up for a school assignment.</p>
+                    <p>Satire. Every seller, product and order in here is made up for a school assignment.</p>
                     <p>&copy; Satin Road</p>
                 </footer>
             </div>
@@ -63,7 +63,7 @@ function NotFound() {
         <Box title="404 - Page not found">
             <p>There is nothing at this address.</p>
             <p>
-                <Link to="/">Back to browsing</Link>
+                <Link to="/">Back to the market</Link>
             </p>
         </Box>
     );

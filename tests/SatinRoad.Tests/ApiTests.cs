@@ -25,7 +25,7 @@ public class AccessTests
     public async Task A_forged_user_id_header_is_ignored()
     {
         await using var api = new ApiFactory();
-        var user = api.AddUser("shadypete");
+        var user = api.AddUser("vitocorleone");
         using var client = api.CreateClient();
         client.DefaultRequestHeaders.Add("X-User-Id", user.ToString());
 
@@ -59,9 +59,9 @@ public class AccessTests
     public async Task A_username_that_differs_only_in_case_is_taken()
     {
         await using var api = new ApiFactory();
-        api.AddUser("ShadyPete");
+        api.AddUser("VitoCorleone");
 
-        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("shadypete", "longenough"), Ct);
+        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("vitocorleone", "longenough"), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
@@ -75,23 +75,23 @@ public class AuthTests
     public async Task The_right_password_logs_in()
     {
         await using var api = new ApiFactory();
-        api.AddUser("shadypete");
+        api.AddUser("vitocorleone");
         using var client = api.CreateClient();
 
-        var login = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest("ShadyPete", Passwords.Demo), Ct);
+        var login = await client.PostAsJsonAsync("/api/auth/login", new LoginRequest("VitoCorleone", Passwords.Demo), Ct);
         var me = await client.GetFromJsonAsync<UserDto>("/api/users/me", Ct);
 
         login.StatusCode.ShouldBe(HttpStatusCode.OK);
-        me!.Username.ShouldBe("shadypete");
+        me!.Username.ShouldBe("vitocorleone");
     }
 
     [Fact]
     public async Task A_wrong_password_is_401()
     {
         await using var api = new ApiFactory();
-        api.AddUser("shadypete");
+        api.AddUser("vitocorleone");
 
-        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new LoginRequest("shadypete", "not-it-at-all"), Ct);
+        var response = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new LoginRequest("vitocorleone", "not-it-at-all"), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Unauthorized);
     }
@@ -121,7 +121,7 @@ public class AuthTests
     public async Task Logging_out_forgets_the_user()
     {
         await using var api = new ApiFactory();
-        using var client = api.As(api.AddUser("shadypete"));
+        using var client = api.As(api.AddUser("vitocorleone"));
 
         var logout = await client.PostAsync("/api/auth/logout", null, Ct);
         var me = await client.GetAsync("/api/users/me", Ct);
@@ -136,11 +136,11 @@ public class AuthTests
         await using var api = new ApiFactory();
         using var client = api.CreateClient();
 
-        var created = await client.PostAsJsonAsync("/api/users", new CreateUserRequest("newbie", "longenough"), Ct);
+        var created = await client.PostAsJsonAsync("/api/users", new CreateUserRequest("jacksparrow", "longenough"), Ct);
         var me = await client.GetFromJsonAsync<UserDto>("/api/users/me", Ct);
 
         created.StatusCode.ShouldBe(HttpStatusCode.Created);
-        me!.Username.ShouldBe("newbie");
+        me!.Username.ShouldBe("jacksparrow");
         me.Role.ShouldBe(Roles.User);
     }
 
@@ -149,7 +149,7 @@ public class AuthTests
     {
         await using var api = new ApiFactory();
 
-        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("newbie", "short"), Ct);
+        var response = await api.CreateClient().PostAsJsonAsync("/api/users", new CreateUserRequest("jacksparrow", "short"), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
@@ -161,7 +161,7 @@ public class AuthTests
         var client = api.CreateClient();
 
         var longName = await client.PostAsJsonAsync("/api/users", new CreateUserRequest(new string('a', Limits.Username + 1), "longenough"), Ct);
-        var longPassword = await client.PostAsJsonAsync("/api/users", new CreateUserRequest("newbie", new string('a', Limits.Password + 1)), Ct);
+        var longPassword = await client.PostAsJsonAsync("/api/users", new CreateUserRequest("jacksparrow", new string('a', Limits.Password + 1)), Ct);
 
         longName.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
         longPassword.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
@@ -176,9 +176,9 @@ public class CategoryTests
     public async Task A_normal_user_cannot_create_a_category()
     {
         await using var api = new ApiFactory();
-        var user = api.AddUser("newbie");
+        var user = api.AddUser("jacksparrow");
 
-        var response = await api.As(user).PostAsJsonAsync("/api/categories", new CategoryRequest("Soap"), Ct);
+        var response = await api.As(user).PostAsJsonAsync("/api/categories", new CategoryRequest("Hard Drugs"), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Forbidden);
     }
@@ -189,10 +189,10 @@ public class CategoryTests
         await using var api = new ApiFactory();
         var admin = api.AddUser("boss", Roles.Admin);
 
-        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("  Soap  "), Ct);
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("  Hard Drugs  "), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
-        (await response.Content.ReadFromJsonAsync<CategoryDto>(Ct))!.Name.ShouldBe("Soap");
+        (await response.Content.ReadFromJsonAsync<CategoryDto>(Ct))!.Name.ShouldBe("Hard Drugs");
     }
 
     [Fact]
@@ -211,9 +211,9 @@ public class CategoryTests
     {
         await using var api = new ApiFactory();
         var admin = api.AddUser("boss", Roles.Admin);
-        api.AddCategory("Soap");
+        api.AddCategory("Hard Drugs");
 
-        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("soap"), Ct);
+        var response = await api.As(admin).PostAsJsonAsync("/api/categories", new CategoryRequest("hard drugs"), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
@@ -223,11 +223,11 @@ public class CategoryTests
     {
         await using var api = new ApiFactory();
         var admin = api.AddUser("boss", Roles.Admin);
-        var vendor = api.AddUser("grandmasoap");
-        var soap = api.AddCategory("Soap");
-        api.AddListing(vendor, soap);
+        var vendor = api.AddUser("walterwhite");
+        var drugs = api.AddCategory("Hard Drugs");
+        api.AddListing(vendor, drugs);
 
-        var response = await api.As(admin).DeleteAsync($"/api/categories/{soap}", Ct);
+        var response = await api.As(admin).DeleteAsync($"/api/categories/{drugs}", Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Conflict);
     }
@@ -241,32 +241,32 @@ public class SellingTests
     public async Task A_user_creates_a_listing()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var soap = api.AddCategory("Soap");
+        var vendor = api.AddUser("walterwhite");
+        var drugs = api.AddCategory("Hard Drugs");
 
         var response = await api.As(vendor).PostAsJsonAsync("/api/my/listings",
-            new ListingRequest(soap, "Lavender bar", "Smells nice", 999, 10), Ct);
+            new ListingRequest(drugs, "Blue rock candy", "99.1% pure", 999, 10), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.Created);
         var listing = (await response.Content.ReadFromJsonAsync<ListingDto>(Ct))!;
-        listing.VendorName.ShouldBe("grandmasoap");
-        listing.CategoryName.ShouldBe("Soap");
+        listing.VendorName.ShouldBe("walterwhite");
+        listing.CategoryName.ShouldBe("Hard Drugs");
     }
 
     [Theory]
     [InlineData("", 100, 1)]       // no title
-    [InlineData("Bar", 0, 1)]      // free
-    [InlineData("Bar", 100, -1)]   // negative stock
-    [InlineData("Bar", Limits.PriceCents + 1, 1)]  // too expensive
-    [InlineData("Bar", 100, Limits.Stock + 1)]     // too much stock
+    [InlineData("Candy", 0, 1)]      // free
+    [InlineData("Candy", 100, -1)]   // negative stock
+    [InlineData("Candy", Limits.PriceCents + 1, 1)]  // too expensive
+    [InlineData("Candy", 100, Limits.Stock + 1)]     // too much stock
     public async Task An_invalid_listing_is_400(string title, long priceCents, int stock)
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var soap = api.AddCategory("Soap");
+        var vendor = api.AddUser("walterwhite");
+        var drugs = api.AddCategory("Hard Drugs");
 
         var response = await api.As(vendor).PostAsJsonAsync("/api/my/listings",
-            new ListingRequest(soap, title, "", priceCents, stock), Ct);
+            new ListingRequest(drugs, title, "", priceCents, stock), Ct);
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
@@ -275,9 +275,9 @@ public class SellingTests
     public async Task Someone_elses_listing_is_404_not_403()
     {
         await using var api = new ApiFactory();
-        var owner = api.AddUser("grandmasoap");
-        var other = api.AddUser("shadypete");
-        var listing = api.AddListing(owner, api.AddCategory("Soap"), stock: 5);
+        var owner = api.AddUser("walterwhite");
+        var other = api.AddUser("vitocorleone");
+        var listing = api.AddListing(owner, api.AddCategory("Hard Drugs"), stock: 5);
 
         var response = await api.As(other).PatchAsJsonAsync($"/api/my/listings/{listing}/stock", new StockRequest(0), Ct);
 
@@ -289,8 +289,8 @@ public class SellingTests
     public async Task Deleting_is_a_soft_delete()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"));
+        var vendor = api.AddUser("walterwhite");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"));
 
         var response = await api.As(vendor).DeleteAsync($"/api/my/listings/{listing}", Ct);
 
@@ -307,9 +307,9 @@ public class BrowseTests
     public async Task Removed_sold_out_and_seized_listings_are_hidden()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var seizedVendor = api.AddUser("shadypete");
-        var category = api.AddCategory("Soap");
+        var vendor = api.AddUser("walterwhite");
+        var seizedVendor = api.AddUser("vitocorleone");
+        var category = api.AddCategory("Hard Drugs");
 
         var visible = api.AddListing(vendor, category, stock: 3);
         var removed = api.AddListing(vendor, category);
@@ -327,10 +327,10 @@ public class BrowseTests
     public async Task Featured_vendors_listings_come_first()
     {
         await using var api = new ApiFactory();
-        var buyer = api.AddUser("bulkbuyer");
-        var category = api.AddCategory("Curiosities");
-        var star = api.AddUser("shadypete");
-        var normal = api.AddUser("oddjobs");
+        var buyer = api.AddUser("bonnieparker");
+        var category = api.AddCategory("Military Hardware");
+        var star = api.AddUser("vitocorleone");
+        var normal = api.AddUser("alcapone");
         var starListing = api.AddListing(star, category, title: "Zebra");
         var normalListing = api.AddListing(normal, category, title: "Apple");
         api.AddOrders(101, buyer, star, starListing);
@@ -345,16 +345,16 @@ public class BrowseTests
     public async Task A_vendor_page_shows_sold_out_listings_and_sales()
     {
         await using var api = new ApiFactory();
-        var buyer = api.AddUser("loyalbuyer");
-        var vendor = api.AddUser("grandmasoap");
-        var category = api.AddCategory("Soap");
+        var buyer = api.AddUser("tonymontana");
+        var vendor = api.AddUser("walterwhite");
+        var category = api.AddCategory("Hard Drugs");
         var inStock = api.AddListing(vendor, category, stock: 3);
         var soldOut = api.AddListing(vendor, category, stock: 0);
         api.AddOrders(4, buyer, vendor, inStock);
 
         var shop = await api.CreateClient().GetFromJsonAsync<VendorDto>($"/api/vendors/{vendor}", Ct);
 
-        shop!.Name.ShouldBe("grandmasoap");
+        shop!.Name.ShouldBe("walterwhite");
         shop.Sales.ShouldBe(4);
         shop.IsFeatured.ShouldBeFalse();
         shop.Listings.Select(l => l.Id).ShouldBe([inStock, soldOut], ignoreOrder: true);
@@ -364,8 +364,8 @@ public class BrowseTests
     public async Task A_seized_vendor_page_is_empty_and_an_unknown_one_is_404()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("shadypete");
-        api.AddListing(vendor, api.AddCategory("Curiosities"));
+        var vendor = api.AddUser("vitocorleone");
+        api.AddListing(vendor, api.AddCategory("Military Hardware"));
         api.Db(db => db.Users.Where(u => u.Id == vendor).Set(u => u.IsSeized, true).Update());
         var client = api.CreateClient();
 
@@ -386,9 +386,9 @@ public class BuyingTests
     public async Task A_purchase_takes_the_stock_and_completes()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var buyer = api.AddUser("newbie");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"), priceCents: 999, stock: 5);
+        var vendor = api.AddUser("walterwhite");
+        var buyer = api.AddUser("jacksparrow");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"), priceCents: 999, stock: 5);
 
         var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 2), Ct);
 
@@ -403,9 +403,9 @@ public class BuyingTests
     public async Task The_twelfth_order_with_a_vendor_is_20_percent_off()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var buyer = api.AddUser("loyalbuyer");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"), priceCents: 999, stock: 5);
+        var vendor = api.AddUser("walterwhite");
+        var buyer = api.AddUser("tonymontana");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"), priceCents: 999, stock: 5);
         api.AddOrders(11, buyer, vendor, listing);
 
         var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
@@ -419,9 +419,9 @@ public class BuyingTests
     public async Task Seized_orders_do_not_count_towards_the_discount()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var buyer = api.AddUser("loyalbuyer");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"), priceCents: 999, stock: 5);
+        var vendor = api.AddUser("walterwhite");
+        var buyer = api.AddUser("tonymontana");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"), priceCents: 999, stock: 5);
         api.AddOrders(10, buyer, vendor, listing);
         api.AddOrders(5, buyer, vendor, listing, OrderStatus.Seized);
 
@@ -434,8 +434,8 @@ public class BuyingTests
     public async Task Buying_your_own_listing_is_400()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"), stock: 5);
+        var vendor = api.AddUser("walterwhite");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"), stock: 5);
 
         var response = await api.As(vendor).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
 
@@ -447,9 +447,9 @@ public class BuyingTests
     public async Task A_quantity_below_one_is_400()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var buyer = api.AddUser("newbie");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"), stock: 5);
+        var vendor = api.AddUser("walterwhite");
+        var buyer = api.AddUser("jacksparrow");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"), stock: 5);
 
         var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 0), Ct);
 
@@ -461,9 +461,9 @@ public class BuyingTests
     public async Task More_than_the_stock_is_409()
     {
         await using var api = new ApiFactory();
-        var vendor = api.AddUser("grandmasoap");
-        var buyer = api.AddUser("newbie");
-        var listing = api.AddListing(vendor, api.AddCategory("Soap"), stock: 2);
+        var vendor = api.AddUser("walterwhite");
+        var buyer = api.AddUser("jacksparrow");
+        var listing = api.AddListing(vendor, api.AddCategory("Hard Drugs"), stock: 2);
 
         var response = await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 3), Ct);
 
@@ -480,9 +480,9 @@ public class RaidTests
     public async Task A_raid_seizes_the_order_and_shuts_the_vendor_down()
     {
         await using var api = new ApiFactory { NextRoll = 0 };   // 0 is always a raid
-        var vendor = api.AddUser("shadypete");
-        var buyer = api.AddUser("newbie");
-        var category = api.AddCategory("Curiosities");
+        var vendor = api.AddUser("vitocorleone");
+        var buyer = api.AddUser("jacksparrow");
+        var category = api.AddCategory("Military Hardware");
         var bought = api.AddListing(vendor, category, stock: 5);
         var other = api.AddListing(vendor, category, stock: 5);
 
@@ -499,9 +499,9 @@ public class RaidTests
     public async Task After_a_raid_the_vendor_is_gone_for_good()
     {
         await using var api = new ApiFactory { NextRoll = 0 };
-        var vendor = api.AddUser("shadypete");
-        var buyer = api.AddUser("newbie");
-        var listing = api.AddListing(vendor, api.AddCategory("Curiosities"), stock: 5);
+        var vendor = api.AddUser("vitocorleone");
+        var buyer = api.AddUser("jacksparrow");
+        var listing = api.AddListing(vendor, api.AddCategory("Military Hardware"), stock: 5);
         await api.As(buyer).PostAsJsonAsync("/api/orders", new OrderRequest(listing, 1), Ct);
         api.NextRoll = 0.99;   // no more raids from here on
 
@@ -524,16 +524,16 @@ public class FeaturedTests
     public async Task Only_vendors_with_more_than_100_completed_sales_are_featured()
     {
         await using var api = new ApiFactory();
-        var buyer = api.AddUser("bulkbuyer");
-        var category = api.AddCategory("Curiosities");
-        var star = api.AddUser("shadypete");
-        var almost = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("bonnieparker");
+        var category = api.AddCategory("Military Hardware");
+        var star = api.AddUser("vitocorleone");
+        var almost = api.AddUser("walterwhite");
         api.AddOrders(101, buyer, star, api.AddListing(star, category));
         api.AddOrders(100, buyer, almost, api.AddListing(almost, category));
 
         var featured = await api.CreateClient().GetFromJsonAsync<List<FeaturedVendorDto>>("/api/vendors/featured", Ct);
 
-        featured!.Select(f => f.VendorName).ShouldBe(["shadypete"]);
+        featured!.Select(f => f.VendorName).ShouldBe(["vitocorleone"]);
         featured![0].Sales.ShouldBe(101);
     }
 
@@ -541,10 +541,10 @@ public class FeaturedTests
     public async Task Seized_orders_do_not_count_and_seized_vendors_are_never_featured()
     {
         await using var api = new ApiFactory();
-        var buyer = api.AddUser("bulkbuyer");
-        var category = api.AddCategory("Curiosities");
-        var raided = api.AddUser("shadypete");
-        var padded = api.AddUser("grandmasoap");
+        var buyer = api.AddUser("bonnieparker");
+        var category = api.AddCategory("Military Hardware");
+        var raided = api.AddUser("vitocorleone");
+        var padded = api.AddUser("walterwhite");
         api.AddOrders(150, buyer, raided, api.AddListing(raided, category));
         api.Db(db => db.Users.Where(u => u.Id == raided).Set(u => u.IsSeized, true).Update());
         var paddedListing = api.AddListing(padded, category);

@@ -13,7 +13,7 @@ public static class Limits
     public const int Title = 100;
     public const int Description = 2_000;
 
-    /// <summary>€1,000,000.00, in cents.</summary>
+    /// <summary>$1,000,000.00, in cents.</summary>
     public const long PriceCents = 100_000_000;
 
     public const int Stock = 1_000_000;
