@@ -39,9 +39,20 @@ public class AccessTests
     {
         await using var api = new ApiFactory();
 
-        var users = await api.CreateClient().GetFromJsonAsync<List<UserDto>>("/api/users", Ct);
+        var login = await api.CreateClient().PostAsJsonAsync("/api/auth/login", new LoginRequest("admin", Passwords.Demo), Ct);
+        var admin = await login.Content.ReadFromJsonAsync<UserDto>(Ct);
 
-        users!.ShouldContain(u => u.Username == "admin" && u.Role == Roles.Admin);
+        admin!.Role.ShouldBe(Roles.Admin);
+    }
+
+    [Fact]
+    public async Task The_list_of_users_is_not_public()
+    {
+        await using var api = new ApiFactory();
+
+        var response = await api.CreateClient().GetAsync("/api/users", Ct);
+
+        response.IsSuccessStatusCode.ShouldBeFalse();
     }
 
     [Fact]
@@ -142,6 +153,19 @@ public class AuthTests
 
         response.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
     }
+
+    [Fact]
+    public async Task An_over_long_username_or_password_is_400()
+    {
+        await using var api = new ApiFactory();
+        var client = api.CreateClient();
+
+        var longName = await client.PostAsJsonAsync("/api/users", new CreateUserRequest(new string('a', Limits.Username + 1), "longenough"), Ct);
+        var longPassword = await client.PostAsJsonAsync("/api/users", new CreateUserRequest("newbie", new string('a', Limits.Password + 1)), Ct);
+
+        longName.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+        longPassword.StatusCode.ShouldBe(HttpStatusCode.BadRequest);
+    }
 }
 
 public class CategoryTests
@@ -233,6 +257,8 @@ public class SellingTests
     [InlineData("", 100, 1)]       // no title
     [InlineData("Bar", 0, 1)]      // free
     [InlineData("Bar", 100, -1)]   // negative stock
+    [InlineData("Bar", Limits.PriceCents + 1, 1)]  // too expensive
+    [InlineData("Bar", 100, Limits.Stock + 1)]     // too much stock
     public async Task An_invalid_listing_is_400(string title, long priceCents, int stock)
     {
         await using var api = new ApiFactory();
@@ -295,6 +321,60 @@ public class BrowseTests
         var listings = await api.CreateClient().GetFromJsonAsync<List<ListingDto>>("/api/listings", Ct);
 
         listings!.Select(l => l.Id).ShouldBe([visible]);
+    }
+
+    [Fact]
+    public async Task Featured_vendors_listings_come_first()
+    {
+        await using var api = new ApiFactory();
+        var buyer = api.AddUser("bulkbuyer");
+        var category = api.AddCategory("Curiosities");
+        var star = api.AddUser("shadypete");
+        var normal = api.AddUser("oddjobs");
+        var starListing = api.AddListing(star, category, title: "Zebra");
+        var normalListing = api.AddListing(normal, category, title: "Apple");
+        api.AddOrders(101, buyer, star, starListing);
+
+        var listings = await api.CreateClient().GetFromJsonAsync<List<ListingDto>>("/api/listings", Ct);
+
+        listings!.Select(l => l.Id).ShouldBe([starListing, normalListing]);
+        listings!.Select(l => l.VendorFeatured).ShouldBe([true, false]);
+    }
+
+    [Fact]
+    public async Task A_vendor_page_shows_sold_out_listings_and_sales()
+    {
+        await using var api = new ApiFactory();
+        var buyer = api.AddUser("loyalbuyer");
+        var vendor = api.AddUser("grandmasoap");
+        var category = api.AddCategory("Soap");
+        var inStock = api.AddListing(vendor, category, stock: 3);
+        var soldOut = api.AddListing(vendor, category, stock: 0);
+        api.AddOrders(4, buyer, vendor, inStock);
+
+        var shop = await api.CreateClient().GetFromJsonAsync<VendorDto>($"/api/vendors/{vendor}", Ct);
+
+        shop!.Name.ShouldBe("grandmasoap");
+        shop.Sales.ShouldBe(4);
+        shop.IsFeatured.ShouldBeFalse();
+        shop.Listings.Select(l => l.Id).ShouldBe([inStock, soldOut], ignoreOrder: true);
+    }
+
+    [Fact]
+    public async Task A_seized_vendor_page_is_empty_and_an_unknown_one_is_404()
+    {
+        await using var api = new ApiFactory();
+        var vendor = api.AddUser("shadypete");
+        api.AddListing(vendor, api.AddCategory("Curiosities"));
+        api.Db(db => db.Users.Where(u => u.Id == vendor).Set(u => u.IsSeized, true).Update());
+        var client = api.CreateClient();
+
+        var shop = await client.GetFromJsonAsync<VendorDto>($"/api/vendors/{vendor}", Ct);
+        var unknown = await client.GetAsync("/api/vendors/9999", Ct);
+
+        shop!.IsSeized.ShouldBeTrue();
+        shop.Listings.ShouldBeEmpty();
+        unknown.StatusCode.ShouldBe(HttpStatusCode.NotFound);
     }
 }
 

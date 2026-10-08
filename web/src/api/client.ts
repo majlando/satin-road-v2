@@ -5,7 +5,7 @@
  */
 import { Api } from "./Api";
 
-export type { CategoryDto, FeaturedVendorDto, ListingDto, ListingRequest, OrderDto, UserDto } from "./Api";
+export type { CategoryDto, FeaturedVendorDto, ListingDto, ListingRequest, OrderDto, UserDto, VendorDto } from "./Api";
 
 // ---- the client -------------------------------------------------------------
 

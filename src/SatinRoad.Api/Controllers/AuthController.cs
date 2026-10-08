@@ -13,7 +13,8 @@ public class AuthController(AppDb db, CurrentUser currentUser) : ControllerBase
         var user = await db.Users.FirstOrDefaultAsync(u => u.Username == username);
 
         // One message for both mistakes, so it does not reveal which usernames exist.
-        if (user is null || !Passwords.Verify(user, request.Password))
+        // An over-long password cannot be right, and is not worth hashing.
+        if (user is null || request.Password.Length > Limits.Password || !Passwords.Verify(user, request.Password))
             throw AppException.Unauthorized("Wrong username or password.");
 
         await currentUser.SignInAsync(user);

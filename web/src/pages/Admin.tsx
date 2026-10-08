@@ -66,6 +66,9 @@ export function Admin() {
                         <tr key={c.id}>
                             <td>
                                 <input
+                                    // Keyed on the name, so a reload shows the saved name.
+                                    key={c.name}
+                                    maxLength={50}
                                     defaultValue={c.name}
                                     aria-label={`Name of ${c.name}`}
                                     onBlur={async (e) => {
@@ -90,7 +93,7 @@ export function Admin() {
                 <p>
                     <label>
                         New category:{" "}
-                        <input value={newName} onChange={(e) => setNewName(e.target.value)} />
+                        <input value={newName} maxLength={50} required onChange={(e) => setNewName(e.target.value)} />
                     </label>{" "}
                     <button type="submit">Add</button>
                 </p>

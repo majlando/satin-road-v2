@@ -118,8 +118,11 @@ export function Sell() {
                                     <td className="num">{money(l.priceCents)}</td>
                                     <td>
                                         <input
+                                            // Keyed on the stock, so a reload shows the saved number.
+                                            key={l.stock}
                                             type="number"
                                             min={0}
+                                            max={1_000_000}
                                             defaultValue={l.stock}
                                             aria-label={`Stock for ${l.title}`}
                                             size={4}
@@ -134,7 +137,17 @@ export function Sell() {
                                     </td>
                                     <td>
                                         <button onClick={() => edit(l)}>Edit</button>{" "}
-                                        <button onClick={() => run(() => api.myListings.myListingsDelete({ id: l.id }))}>Delete</button>
+                                        <button
+                                            onClick={async () => {
+                                                const deleted = await run(() => api.myListings.myListingsDelete({ id: l.id }));
+                                                if (deleted && editingId === l.id) {
+                                                    setEditingId(null); // nothing left to edit
+                                                    setForm(EMPTY_FORM);
+                                                }
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -172,6 +185,8 @@ export function Sell() {
                                 <input
                                     id="title"
                                     size={40}
+                                    maxLength={100}
+                                    required
                                     value={form.title}
                                     onChange={(e) => setForm({ ...form, title: e.target.value })}
                                 />
@@ -184,6 +199,7 @@ export function Sell() {
                                     id="description"
                                     rows={4}
                                     cols={40}
+                                    maxLength={2000}
                                     value={form.description}
                                     onChange={(e) => setForm({ ...form, description: e.target.value })}
                                 />
@@ -197,6 +213,8 @@ export function Sell() {
                                     type="number"
                                     step="0.01"
                                     min="0.01"
+                                    max="1000000"
+                                    required
                                     size={8}
                                     value={form.price}
                                     onChange={(e) => setForm({ ...form, price: e.target.value })}
@@ -210,6 +228,8 @@ export function Sell() {
                                     id="stock"
                                     type="number"
                                     min="0"
+                                    max="1000000"
+                                    required
                                     size={4}
                                     value={form.stock}
                                     onChange={(e) => setForm({ ...form, stock: e.target.value })}

@@ -19,8 +19,9 @@ public record CategoryDto(int Id, string Name)
 
 public record CategoryRequest(string Name);
 
+/// <param name="VendorFeatured">The vendor has more than 100 sales; their listings are shown first.</param>
 public record ListingDto(
-    int Id, int VendorId, string VendorName, int CategoryId, string CategoryName,
+    int Id, int VendorId, string VendorName, bool VendorFeatured, int CategoryId, string CategoryName,
     string Title, string Description, long PriceCents, int Stock);
 
 public record ListingRequest(int CategoryId, string Title, string Description, long PriceCents, int Stock);
@@ -38,3 +39,6 @@ public record OrderDto(
 }
 
 public record FeaturedVendorDto(int VendorId, string VendorName, int Sales);
+
+/// <summary>A vendor's shop. A seized vendor still has a page, but no listings.</summary>
+public record VendorDto(int Id, string Name, bool IsSeized, int Sales, bool IsFeatured, List<ListingDto> Listings);

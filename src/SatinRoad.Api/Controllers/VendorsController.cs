@@ -2,26 +2,13 @@ namespace SatinRoad.Api.Controllers;
 
 [ApiController]
 [Route("api/vendors")]
-public class VendorsController(AppDb db) : ControllerBase
+public class VendorsController(Catalog catalog) : ControllerBase
 {
     /// <summary>Vendors with more than 100 completed sales, most sales first.</summary>
     [HttpGet("featured")]
-    public async Task<List<FeaturedVendorDto>> Featured()
-    {
-        // The database counts completed sales per vendor (GROUP BY)...
-        var sales = await (
-            from o in db.Orders
-            join v in db.Users on o.VendorId equals v.Id
-            where o.Status == OrderStatus.Completed && !v.IsSeized
-            group o by new { v.Id, v.Username } into g
-            select new { g.Key.Id, g.Key.Username, Sales = g.Count() }
-        ).ToListAsync();
+    public Task<List<FeaturedVendorDto>> Featured() => catalog.FeaturedVendorsAsync();
 
-        // ...and the rule decides who is featured, so "more than 100" lives in one place.
-        return sales
-            .Where(s => FeaturedVendorRule.IsFeatured(s.Sales))
-            .OrderByDescending(s => s.Sales)
-            .Select(s => new FeaturedVendorDto(s.Id, s.Username, s.Sales))
-            .ToList();
-    }
+    /// <summary>One vendor's shop, including sold-out listings. A seized vendor has none.</summary>
+    [HttpGet("{id:int}")]
+    public Task<VendorDto> Get(int id) => catalog.VendorAsync(id);
 }
