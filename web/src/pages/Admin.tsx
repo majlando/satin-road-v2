@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { LoginLink, useAuth } from "../Auth";
+import { Box } from "../Box";
 import { api, errorText, type CategoryDto } from "../api/client";
 
 /** Category management. Only shown to admins; the API checks as well. */
@@ -23,13 +24,12 @@ export function Admin() {
 
     if (user?.role !== "Admin") {
         return (
-            <section className="card">
-                <h2>Admin: categories</h2>
-                <p className="muted">
+            <Box title="Admin: categories">
+                <p>
                     Only an admin can manage categories.{" "}
                     {user ? "You are not one." : <><LoginLink /> as an admin.</>}
                 </p>
-            </section>
+            </Box>
         );
     }
 
@@ -52,33 +52,51 @@ export function Admin() {
     }
 
     return (
-        <section className="card">
-            <h2>Admin: categories</h2>
-
-            <ul className="category-list">
-                {categories.map((c) => (
-                    <li key={c.id}>
-                        <input
-                            defaultValue={c.name}
-                            aria-label={`Name of ${c.name}`}
-                            onBlur={async (e) => {
-                                const input = e.target;
-                                if (input.value === c.name) return;
-                                const renamed = await run(() => api.categories.categoriesUpdate({ id: c.id }, { name: input.value }));
-                                if (!renamed) input.value = c.name; // refused: show the saved name again
-                            }}
-                        />{" "}
-                        <button onClick={() => run(() => api.categories.categoriesDelete({ id: c.id }))}>Delete</button>
-                    </li>
-                ))}
-            </ul>
+        <Box title="Admin: categories">
+            <div className="table-wrap">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {categories.map((c) => (
+                        <tr key={c.id}>
+                            <td>
+                                <input
+                                    defaultValue={c.name}
+                                    aria-label={`Name of ${c.name}`}
+                                    onBlur={async (e) => {
+                                        const input = e.target;
+                                        if (input.value === c.name) return;
+                                        const renamed = await run(() => api.categories.categoriesUpdate({ id: c.id }, { name: input.value }));
+                                        if (!renamed) input.value = c.name; // refused: show the saved name again
+                                    }}
+                                />
+                            </td>
+                            <td>
+                                <button onClick={() => run(() => api.categories.categoriesDelete({ id: c.id }))}>Delete</button>
+                            </td>
+                        </tr>
+                    ))}
+                    </tbody>
+                </table>
+            </div>
+            <p className="muted">Edit a name and click elsewhere to save it.</p>
 
             <form onSubmit={add}>
-                <input value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="New category" />{" "}
-                <button type="submit">Add</button>
+                <p>
+                    <label>
+                        New category:{" "}
+                        <input value={newName} onChange={(e) => setNewName(e.target.value)} />
+                    </label>{" "}
+                    <button type="submit">Add</button>
+                </p>
             </form>
 
             {error && <p className="error">{error}</p>}
-        </section>
+        </Box>
     );
 }

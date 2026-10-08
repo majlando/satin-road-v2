@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router";
 import { LoginLink, useAuth } from "../Auth";
+import { Box } from "../Box";
 import { api, errorText, money, type ListingDto, type OrderDto } from "../api/client";
 
 /** One listing, with a quantity field and a Buy button. */
@@ -33,51 +34,77 @@ export function ListingPage() {
     if (order?.status === "Seized") return <SeizedScreen />;
 
     return (
-        <section className="card">
-            <p>
-                <Link to="/">← Back to browsing</Link>
-            </p>
+        <>
+            <Box title={listing?.title ?? "Listing"}>
+                <p>
+                    <Link to="/">&laquo; Back to browsing</Link>
+                </p>
 
-            {!listing && !error && <p className="muted">Loading…</p>}
+                {!listing && !error && <p className="muted">Loading…</p>}
+
+                {listing && (
+                    <>
+                        <table className="details">
+                            <tbody>
+                            <tr>
+                                <th>Price</th>
+                                <td className="price">{money(listing.priceCents)}</td>
+                            </tr>
+                            <tr>
+                                <th>Seller</th>
+                                <td>
+                                    <Link to={`/vendors/${listing.vendorId}`}>{listing.vendorName}</Link>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>Category</th>
+                                <td>
+                                    <Link to={`/?category=${listing.categoryId}`}>{listing.categoryName}</Link>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th>In stock</th>
+                                <td>{listing.stock > 0 ? listing.stock : "Sold out"}</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                        <h3>Description</h3>
+                        <p>{listing.description}</p>
+                    </>
+                )}
+                {error && !listing && <p className="error">{error}</p>}
+            </Box>
 
             {listing && (
-                <>
-                    <h2>{listing.title}</h2>
-                    <p className="muted">
-                        Sold by {listing.vendorName} · {listing.categoryName}
-                    </p>
-                    <p>{listing.description}</p>
-                    <p className="price">{money(listing.priceCents)}</p>
-                    <p className="muted">{listing.stock > 0 ? `${listing.stock} in stock` : "Sold out"}</p>
-
-                    {!user && <p className="muted"><LoginLink /> to buy.</p>}
-
+                <Box title="Buy">
+                    {!user && <p><LoginLink /> to buy.</p>}
+                    {user && listing.stock === 0 && <p className="muted">Sold out.</p>}
                     {user && listing.stock > 0 && (
-                        <div className="buy">
+                        <p>
                             <label>
-                                Quantity{" "}
+                                Quantity:{" "}
                                 <input
                                     type="number"
                                     min={1}
                                     max={listing.stock}
                                     value={quantity}
                                     onChange={(e) => setQuantity(Number(e.target.value))}
+                                    size={4}
                                 />
-                            </label>
-                            <button onClick={buy}>Buy</button>
-                        </div>
+                            </label>{" "}
+                            <button onClick={buy}>Buy now</button>
+                        </p>
                     )}
-                </>
+                    {order && (
+                        <p className="success">
+                            Bought {order.quantity} for {money(order.totalCents)}.
+                            {order.discountCents > 0 && ` Loyalty discount: ${money(order.discountCents)} off!`}
+                        </p>
+                    )}
+                    {error && <p className="error">{error}</p>}
+                </Box>
             )}
-
-            {order && (
-                <p className="success">
-                    Bought {order.quantity} for {money(order.totalCents)}.
-                    {order.discountCents > 0 && ` Loyalty discount: ${money(order.discountCents)} off!`}
-                </p>
-            )}
-            {error && <p className="error">{error}</p>}
-        </section>
+        </>
     );
 }
 
