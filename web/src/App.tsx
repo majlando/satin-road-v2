@@ -1,4 +1,4 @@
-import { Link, Route, Routes } from "react-router";
+import { Link, NavLink, Route, Routes } from "react-router";
 import { ActingAsPicker, ActingAsProvider } from "./ActingAs";
 import { Browse } from "./pages/Browse";
 import { ListingPage } from "./pages/ListingPage";
@@ -12,14 +12,13 @@ export function App() {
             <div className="shell">
                 <header className="masthead">
                     <h1>
-                        Satin Road <span className="muted">— a fictional marketplace</span>
+                        <Link to="/" className="home">Satin Road</Link>
                     </h1>
                     <nav>
-                        <Link to="/">Browse</Link>
-                        <Link to="/sell">Sell</Link>
-                        <Link to="/admin">Admin</Link>
+                        <NavLink to="/" end>Browse</NavLink>
+                        <NavLink to="/sell">Sell</NavLink>
+                        <NavLink to="/admin">Admin</NavLink>
                     </nav>
-                    
                     <ActingAsPicker />
                 </header>
 

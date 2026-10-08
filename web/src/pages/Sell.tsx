@@ -98,45 +98,47 @@ export function Sell() {
                 <h2>Your listings</h2>
                 {listings.length === 0 && <p className="muted">You are not selling anything yet.</p>}
                 {listings.length > 0 && (
-                    <table>
-                        <thead>
-                        <tr>
-                            <th>Title</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Stock</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {listings.map((l) => (
-                            <tr key={l.id}>
-                                <td>{l.title}</td>
-                                <td>{l.categoryName}</td>
-                                <td>{money(l.priceCents)}</td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        min={0}
-                                        defaultValue={l.stock}
-                                        aria-label={`Stock for ${l.title}`}
-                                        onBlur={async (e) => {
-                                            const input = e.target;
-                                            const stock = Number(input.value);
-                                            if (stock === l.stock) return;
-                                            const saved = await run(() => api.myListings.myListingsStockPartialUpdate({ id: l.id }, { stock }));
-                                            if (!saved) input.value = String(l.stock); // refused: show the saved stock again
-                                        }}
-                                    />
-                                </td>
-                                <td>
-                                    <button onClick={() => edit(l)}>Edit</button>{" "}
-                                    <button onClick={() => run(() => api.myListings.myListingsDelete({ id: l.id }))}>Delete</button>
-                                </td>
+                    <div className="table-wrap">
+                        <table>
+                            <thead>
+                            <tr>
+                                <th>Title</th>
+                                <th>Category</th>
+                                <th className="num">Price</th>
+                                <th>Stock</th>
+                                <th></th>
                             </tr>
-                        ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                            {listings.map((l) => (
+                                <tr key={l.id}>
+                                    <td>{l.title}</td>
+                                    <td>{l.categoryName}</td>
+                                    <td className="num">{money(l.priceCents)}</td>
+                                    <td>
+                                        <input
+                                            type="number"
+                                            min={0}
+                                            defaultValue={l.stock}
+                                            aria-label={`Stock for ${l.title}`}
+                                            onBlur={async (e) => {
+                                                const input = e.target;
+                                                const stock = Number(input.value);
+                                                if (stock === l.stock) return;
+                                                const saved = await run(() => api.myListings.myListingsStockPartialUpdate({ id: l.id }, { stock }));
+                                                if (!saved) input.value = String(l.stock); // refused: show the saved stock again
+                                            }}
+                                        />
+                                    </td>
+                                    <td>
+                                        <button onClick={() => edit(l)}>Edit</button>{" "}
+                                        <button onClick={() => run(() => api.myListings.myListingsDelete({ id: l.id }))}>Delete</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </table>
+                    </div>
                 )}
             </section>
 
@@ -164,6 +166,7 @@ export function Sell() {
                     <label>
                         Description
                         <textarea
+                            rows={4}
                             value={form.description}
                             onChange={(e) => setForm({ ...form, description: e.target.value })}
                         />
