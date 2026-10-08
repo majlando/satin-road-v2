@@ -50,4 +50,4 @@ dotnet test
 
 The full reports: 
 - [home](docs/lighthouse/home.html)
-- [listing](docs/lighthouse/listing.html).
+- [listing](docs/lighthouse/listing.html)
