@@ -121,11 +121,11 @@ function SeizedScreen() {
         <div className="seized" role="alert">
             <div className="seal" aria-hidden="true">
                 ★<br />
-                FEDERAL
+                FEMALE
                 <br />
-                SATIRE
+                BOOB
                 <br />
-                BUREAU
+                INSPECTOR
             </div>
             <h2>This shop has been seized</h2>
             <p>
