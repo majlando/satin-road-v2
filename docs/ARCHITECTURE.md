@@ -1,1 +1,5 @@
-Web (React) → API (ASP.NET Core, C#) → DB (SQLite)
+### UML Arhitecture Diagram
+```mermaid
+flowchart LR
+    Web --> API --> DB
+```
